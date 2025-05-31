@@ -42,9 +42,9 @@ pipeline {
                 sh 'rm -rf "$CLIENT"'
                 sh 'mkdir "$CLIENT"'
                 sh 'mv battle-buds-client/target/libs "$CLIENT"'
-                sh 'mv battle-buds-client/target/battle-buds-client-0.0.1.jar "$CLIENT/Battle Buds.jar"'
+                sh 'mv battle-buds-client/target/battle-buds-client-0.0.1.jar "$CLIENT/BattleBuds.jar"'
                 sh 'mv assets "$CLIENT"'
-                sh 'echo -n ./assets/ > "$CLIENT/assets.ini"'
+                sh 'echo -n java/bin/java -jar BattleBuds.jar > "$CLIENT/launcher.bat"'
                 sh 'curl -X POST https://destrostudios.com:8080/apps/15/updateFiles'
             }
         }
