@@ -44,7 +44,7 @@ pipeline {
                 sh 'mv battle-buds-client/target/libs "$CLIENT"'
                 sh 'mv battle-buds-client/target/battle-buds-client-0.0.1.jar "$CLIENT/BattleBuds.jar"'
                 sh 'mv assets "$CLIENT"'
-                sh 'echo -n java/bin/java -jar BattleBuds.jar > "$CLIENT/launcher.bat"'
+                sh 'echo -n java/bin/java -jar BattleBuds.jar > "$CLIENT/BattleBuds.bat"'
                 sh 'curl -X POST https://destrostudios.com:8080/apps/15/updateFiles'
             }
         }
