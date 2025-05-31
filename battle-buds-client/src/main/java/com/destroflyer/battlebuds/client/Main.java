@@ -11,6 +11,9 @@ public class Main {
         LogUtil.setupLogFile();
 
         HashMap<String, String> settings = Settings.readSettings();
+        if (args.length == 0) {
+            throw new RuntimeException("No JWT provided.");
+        }
         String jwt = args[0];
         String serverHost = ((args.length > 1) ? args[1] : settings.getOrDefault("serverHost", "destrostudios.com"));
         int serverPort = Integer.parseInt((args.length > 2) ? args[2] : settings.getOrDefault("serverPort", "" + NetworkUtil.PORT));

@@ -23,6 +23,7 @@ public class ClientNetworkAppState extends BaseClientAppState implements Message
     @Override
     public void initialize(AppStateManager stateManager, Application application) {
         super.initialize(stateManager, application);
+        System.out.println("Connecting to " + mainApplication.getServerHost() + ":" + mainApplication.getServerPort() + "...");
         try {
             client = Network.connectToServer(mainApplication.getServerHost(), mainApplication.getServerPort());
         } catch (IOException ex) {
