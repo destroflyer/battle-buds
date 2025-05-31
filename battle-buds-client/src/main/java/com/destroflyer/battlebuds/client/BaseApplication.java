@@ -49,7 +49,6 @@ public class BaseApplication extends SimpleApplication {
         assetManager.registerLocator(FileAssets.ROOT, FileLocator.class);
         inputManager.deleteMapping(SimpleApplication.INPUT_MAPPING_EXIT);
         setDisplayStatView(false);
-        setDisplayFps(true);
 
         AmbientLight ambientLight = new AmbientLight();
         ambientLight.setColor(ColorRGBA.White.mult(0.4f));
