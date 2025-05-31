@@ -1,0 +1,7 @@
+<skin name="jaime">
+    <model normScale="4" scale="0.75">
+        <material>
+            <texture normalMap="normal.png">diffuse.png</texture>
+        </material>
+    </model>
+</skin>

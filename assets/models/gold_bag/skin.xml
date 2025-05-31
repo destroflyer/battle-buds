@@ -1,0 +1,7 @@
+<skin name="gold_bag">
+    <model normScale="8">
+        <material>
+            <texture normalMap="normal.png">diffuse.png</texture>
+        </material>
+    </model>
+</skin>

@@ -1,0 +1,7 @@
+<skin name="legion_soldier">
+    <model normScale="0.04" scale="1">
+        <material>
+            <texture alpha="1">diffuse_red.png</texture>
+        </material>
+    </model>
+</skin>

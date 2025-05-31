@@ -1,0 +1,14 @@
+<skin name="gold_coin">
+    <model normScale="8" scale="3">
+        <position>
+            <!--So that it exactly stands on the ground-->
+            <location>0,1.3,0</location>
+        </position>
+        <material>
+            <texture source="gold_bag" normalMap="normal.png">diffuse.png</texture>
+        </material>
+        <modifiers>
+            <modifier>RotateY</modifier>
+        </modifiers>
+    </model>
+</skin>

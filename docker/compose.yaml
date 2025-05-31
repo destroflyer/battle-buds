@@ -1,0 +1,8 @@
+name: battlebuds
+services:
+  app:
+    build:
+      dockerfile: app.Dockerfile
+    ports:
+      - "34000:34000"
+    restart: always
