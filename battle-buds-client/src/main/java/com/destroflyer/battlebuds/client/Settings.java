@@ -13,11 +13,13 @@ public class Settings {
         if (FileManager.existsFile(SETTINGS_FILE_PATH)) {
             String[] lines = FileManager.getFileLines(SETTINGS_FILE_PATH);
             for (String line : lines) {
-                String[] keyValue = line.split("=", 2);
-                if (keyValue.length != 2) {
-                    throw new RuntimeException("Invalid setting: " + line);
+                if (!line.isEmpty() && !line.startsWith("#")) {
+                    String[] keyValue = line.split("=", 2);
+                    if (keyValue.length != 2) {
+                        throw new RuntimeException("Invalid setting: " + line);
+                    }
+                    settings.put(keyValue[0], keyValue[1]);
                 }
-                settings.put(keyValue[0], keyValue[1]);
             }
         }
         return settings;

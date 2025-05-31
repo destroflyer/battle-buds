@@ -1,7 +1,6 @@
 package com.destroflyer.battlebuds.client.appstates;
 
 import com.destroflyer.battlebuds.shared.Account;
-import com.destroflyer.battlebuds.shared.network.NetworkUtil;
 import com.destroflyer.battlebuds.shared.network.messages.LoginMessage;
 import com.destroflyer.battlebuds.shared.network.messages.LoginSuccessMessage;
 import com.jme3.app.Application;
