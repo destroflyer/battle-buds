@@ -14,7 +14,7 @@ import java.io.IOException;
 
 public class NetworkUtil {
 
-    public static final int PORT = 34000;
+    public static final int PORT = 52170;
 
     public static void registerSerializers() {
         Serializer.registerClasses(

@@ -4,5 +4,5 @@ services:
     build:
       dockerfile: app.Dockerfile
     ports:
-      - "34000:34000"
+      - "52170:52170"
     restart: always
