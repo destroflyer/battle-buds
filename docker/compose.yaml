@@ -4,5 +4,7 @@ services:
     build:
       dockerfile: app.Dockerfile
     ports:
-      - "52170:52170"
+      # jMonkeyEngine requires both TCP and UDP to be open, even if only TCP is used
+      - "34000:34000/tcp"
+      - "34000:34000/udp"
     restart: always
