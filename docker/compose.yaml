@@ -1,4 +1,4 @@
-name: battlebuds
+name: battle-buds
 services:
   app:
     build:
