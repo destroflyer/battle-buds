@@ -2,7 +2,7 @@ package com.destroflyer.battlebuds.shared.game.objects.pickup;
 
 import com.destroflyer.battlebuds.shared.game.Item;
 import com.destroflyer.battlebuds.shared.game.objects.PickUpObject;
-import com.destroflyer.battlebuds.shared.game.objects.Player;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 
@@ -22,13 +22,13 @@ public class ItemLoot extends PickUpObject {
     private Item item;
 
     @Override
-    public boolean canBePickupedBy(Player player) {
-        return super.canBePickupedBy(player) && player.canAddItem();
+    public boolean canBePickupedBy(ActualPlayer actualPlayer) {
+        return super.canBePickupedBy(actualPlayer) && actualPlayer.canAddItem();
     }
 
     @Override
-    protected void onPickUp(Player player) {
-        player.addItem(item);
+    protected void onPickUp(ActualPlayer actualPlayer) {
+        actualPlayer.addItem(item);
     }
 
     @Override

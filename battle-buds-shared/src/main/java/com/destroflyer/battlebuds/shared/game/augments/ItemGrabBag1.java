@@ -2,6 +2,7 @@ package com.destroflyer.battlebuds.shared.game.augments;
 
 import com.destroflyer.battlebuds.shared.game.Augment;
 import com.destroflyer.battlebuds.shared.game.Tier;
+import com.destroflyer.battlebuds.shared.game.items.Items;
 
 public class ItemGrabBag1 extends Augment {
 
@@ -14,6 +15,6 @@ public class ItemGrabBag1 extends Augment {
     @Override
     public void onAdd() {
         super.onAdd();
-        player.dropRandomFullItem();
+        player.dropForSelf(Items.createRandomFullItemLoot());
     }
 }

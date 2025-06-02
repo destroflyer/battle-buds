@@ -6,7 +6,10 @@ import com.destroflyer.battlebuds.shared.game.augments.Augments;
 import com.destroflyer.battlebuds.shared.game.boards.*;
 import com.destroflyer.battlebuds.shared.game.objects.*;
 import com.destroflyer.battlebuds.shared.game.objects.Character;
-import com.destroflyer.battlebuds.shared.game.objects.units.*;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
+import com.destroflyer.battlebuds.shared.game.objects.players.BotPlayer;
+import com.destroflyer.battlebuds.shared.game.objects.players.HumanPlayer;
+import com.destroflyer.battlebuds.shared.game.objects.players.NeutralPlayer;
 import com.destroflyer.battlebuds.shared.game.spells.TestSpell;
 import com.destroflyer.battlebuds.shared.lobby.LobbyGame;
 import com.destroflyer.battlebuds.shared.lobby.LobbyPlayer;
@@ -14,8 +17,6 @@ import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 import com.destroflyer.battlebuds.shared.network.GameSerializable;
 import com.destroflyer.battlebuds.shared.network.OptimizedBits;
-import com.jme3.math.FastMath;
-import com.jme3.math.Vector2f;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.destroflyer.battlebuds.shared.game.PhaseType.CAROUSEL;
 
@@ -35,33 +37,34 @@ public class Game implements GameSerializable {
 
         // Players
 
+        int actualPlayerCount = lobbyGame.getGameMode().getPlayerCount();
+        if (actualPlayerCount == 1) {
+            actualPlayerCount = 8;
+        }
+        int botsCount = (actualPlayerCount - lobbyGame.getPlayers().size());
+
         for (LobbyPlayer lobbyPlayer : lobbyGame.getPlayers()) {
             Account account = lobbyPlayer.getAccount();
-            actualPlayers.add(createActualPlayer(account.getId(), account.getLogin(), lobbyPlayer.getCharacterName()));
+            HumanPlayer humanPlayer = new HumanPlayer(account.getId());
+            humanPlayer.setName(account.getLogin());
+            humanPlayer.setVisualName(lobbyPlayer.getCharacterName());
+            initializeActualPlayer(humanPlayer);
+            players.add(humanPlayer);
         }
-        int totalPlayerCount = lobbyGame.getGameMode().getPlayerCount();
-        if (totalPlayerCount == 1) {
-            totalPlayerCount = 8;
-        }
-        int botsCount = (totalPlayerCount - lobbyGame.getPlayers().size());
         for (int i = 0; i < botsCount; i++) {
-            actualPlayers.add(createActualPlayer(null, "Bot " + (i + 1), "garmon"));
+            BotPlayer botPlayer = new BotPlayer();
+            botPlayer.setName("Bot " + (i + 1));
+            botPlayer.setVisualName("garmon");
+            initializeActualPlayer(botPlayer);
+            players.add(botPlayer);
         }
-        for (int i = 0; i < actualPlayers.size(); i++) {
-            Player actualPlayer = actualPlayers.get(i);
-
-            float angle = ((((float) i) / actualPlayers.size()) * FastMath.TWO_PI);
-            float radius = 12;
-            float x = (float) (Math.sin(angle) * radius);
-            float y = (float) (Math.cos(angle) * radius);
-            actualPlayer.setPosition(new Vector2f(x, y));
-
-            Player neutralPlayer = createNeutralPlayer();
-            neutralPlayers.add(neutralPlayer);
-            allPlayers.add(actualPlayer);
-            allPlayers.add(neutralPlayer);
+        for (int i = 0; i < actualPlayerCount; i++) {
+            players.add(new NeutralPlayer());
         }
-        for (Player player : allPlayers) {
+        for (ActualPlayer actualPlayer : getActualPlayers()) {
+            actualPlayer.setCurrentHealth(actualPlayer.getMaximumHealth());
+        }
+        for (Player player : players) {
             register(player);
         }
 
@@ -93,10 +96,7 @@ public class Game implements GameSerializable {
     public static final int SHOP_SLOTS = 5;
     @Getter
     private LobbyGame lobbyGame;
-    private ArrayList<Player> allPlayers = new ArrayList<>();
-    @Getter
-    private ArrayList<Player> actualPlayers = new ArrayList<>();
-    private ArrayList<Player> neutralPlayers = new ArrayList<>();
+    private ArrayList<Player> players = new ArrayList<>();
     private ArrayList<Unit>[] unitPoolsByCost = new ArrayList[MAXIMUM_BUYABLE_UNIT_COST];
     @Getter
     private int phase = -1;
@@ -105,29 +105,13 @@ public class Game implements GameSerializable {
     private int nextObjectId = 1;
     private ArrayList<GameTask> tasks = new ArrayList<>();
 
-    private Player createActualPlayer(Integer accountId, String name, String characterName) {
-        Player player = createPlayer(accountId, name, characterName);
-        player.setCurrentHealth(player.getMaximumHealth());
-        return player;
-    }
-
-    private Player createNeutralPlayer() {
-        return createPlayer(null, "Neutral", null);
-    }
-
-    private Player createPlayer(Integer accountId, String name, String visualName) {
-        Player player = new Player(accountId);
-        player.setName(name);
-        player.setVisualName(visualName);
-
+    private void initializeActualPlayer(ActualPlayer actualPlayer) {
         PlanningBoard planningBoard = new PlanningBoard();
         planningBoard.setGame(this);
         ArrayList<Player> planningBoardOwners = new ArrayList<>();
-        planningBoardOwners.add(player);
+        planningBoardOwners.add(actualPlayer);
         planningBoard.setOwners(planningBoardOwners);
-        player.setPlanningBoard(planningBoard);
-
-        return player;
+        actualPlayer.setPlanningBoard(planningBoard);
     }
 
     public void register(GameObject object) {
@@ -151,7 +135,7 @@ public class Game implements GameSerializable {
     }
 
     private void startNextPhase() {
-        HashMap<Player, ArrayList<PickUpObject>> leftoverOwnedPickUpObjects = new HashMap<>();
+        HashMap<ActualPlayer, ArrayList<PickUpObject>> leftoverOwnedPickUpObjects = new HashMap<>();
         for (Board board : boards) {
             board.onFinish();
             for (GameObject object : board.getObjects()) {
@@ -164,7 +148,7 @@ public class Game implements GameSerializable {
         boards.clear();
         tasks.clear();
 
-        List<Player> alivePlayers = actualPlayers.stream().filter(Character::isAlive).toList();
+        List<ActualPlayer> aliveActualPlayers = getActualPlayers().stream().filter(Character::isAlive).toList();
 
         phase++;
         PhaseType phaseType = getPhaseType();
@@ -172,35 +156,35 @@ public class Game implements GameSerializable {
             case CAROUSEL -> {
                 CarouselBoard carouselBoard = new CarouselBoard();
                 carouselBoard.setGame(this);
-                carouselBoard.setOwners(actualPlayers);
+                carouselBoard.setOwners(aliveActualPlayers);
                 boards.add(carouselBoard);
             }
             case PLANNING -> {
-                for (Player player : alivePlayers) {
-                    player.addExperience(2);
-                    player.addGold(player.getGoldIncome());
-                    reroll(player);
+                for (ActualPlayer actualPlayer : aliveActualPlayers) {
+                    actualPlayer.addExperience(2);
+                    actualPlayer.addGold(actualPlayer.getGoldIncome());
+                    reroll(actualPlayer);
 
-                    PlanningBoard planningBoard = player.getPlanningBoard();
+                    PlanningBoard planningBoard = actualPlayer.getPlanningBoard();
                     planningBoard.reset();
                     boards.add(planningBoard);
                 }
             }
             case COMBAT_NEUTRAL -> {
-                for (int i = 0; i < actualPlayers.size(); i++) {
-                    Player actualPlayer = actualPlayers.get(i);
-                    Player neutralPlayer = neutralPlayers.get(i);
+                for (ActualPlayer actualPlayer : aliveActualPlayers) {
+                    // Technically it doesn't matter which neutral player to battle, but this could make debugging easier
+                    NeutralPlayer neutralPlayer = getNeutralPlayers().get(getActualPlayers().indexOf(actualPlayer));
+                    neutralPlayer.setupSlotUnits();
                     addCombatBoard(new NeutralCombatBoard(), actualPlayer, neutralPlayer);
-                    setupNeutralBoard(neutralPlayer);
                 }
             }
             case COMBAT_PLAYER -> {
-                ArrayList<Player> remainingPlayers = new ArrayList<>(alivePlayers);
+                ArrayList<ActualPlayer> remainingPlayers = new ArrayList<>(aliveActualPlayers);
                 Collections.shuffle(remainingPlayers);
                 while (remainingPlayers.size() >= 2) {
-                    Player player1 = remainingPlayers.removeFirst();
-                    Player player2 = remainingPlayers.removeFirst();
-                    addCombatBoard(new PlayerCombatBoard(), player1, player2);
+                    ActualPlayer actualPlayer1 = remainingPlayers.removeFirst();
+                    ActualPlayer actualPlayer2 = remainingPlayers.removeFirst();
+                    addCombatBoard(new PlayerCombatBoard(), actualPlayer1, actualPlayer2);
                 }
                 // No ghosts supported yet
                 if (remainingPlayers.size() > 0) {
@@ -211,7 +195,7 @@ public class Game implements GameSerializable {
 
         for (Board board : boards) {
             for (Player player : board.getOwners()) {
-                player.watchPlayer(player);
+                board.addObject(player);
                 // Needs to be done before updating slot unit board states (so that they will be added to the board)
                 player.resetUnitsRemovedFromBoard();
                 // Needs to be done before resetting, as resetting involves calculations that require the board to be set (Example: A trait bonus for maximum health that looks at the units on the board)
@@ -233,12 +217,18 @@ public class Game implements GameSerializable {
                         break;
                 }
 
-                // Easiest way for now to get the first unit
-                if (phase == 1) {
-                    player.tryBuyUnit(0);
-                    reroll(player);
+                if (player instanceof ActualPlayer actualPlayer) {
+                    if (actualPlayer instanceof HumanPlayer humanPlayer) {
+                        humanPlayer.watchPlayer(humanPlayer);
+                    }
+                    // Easiest way for now to get the first unit
+                    if (phase == 1) {
+                        actualPlayer.tryBuyUnit(0);
+                        reroll(actualPlayer);
+                    }
                 }
             }
+            board.onStart();
         }
 
         if (PhaseMath.isAugmentOffered(phase)) {
@@ -246,8 +236,8 @@ public class Game implements GameSerializable {
         }
     }
 
-    private void addPlanningBoard(Player player) {
-        PlanningBoard planningBoard = player.getPlanningBoard();
+    private void addPlanningBoard(ActualPlayer actualPlayer) {
+        PlanningBoard planningBoard = actualPlayer.getPlanningBoard();
         planningBoard.reset();
         boards.add(planningBoard);
     }
@@ -260,60 +250,23 @@ public class Game implements GameSerializable {
         combatBoard.setOwners(boardOwners);
         boards.add(combatBoard);
 
-        player1.fillBoardFromBenchIfSpaceLeft();
-        player2.fillBoardFromBenchIfSpaceLeft();
-    }
-
-    public void setupNeutralBoard(Player neutralPlayer) {
-        neutralPlayer.clearUnits();
-        int stage = PhaseMath.getStage(phase);
-        int round = PhaseMath.getRound(phase);
-        switch (stage) {
-            case 1:
-                if (round > 3) {
-                    neutralPlayer.addNewUnit(new RebellionArcher(), new PositionSlot(PositionSlot.Type.BOARD, 5, 2));
-                }
-                if (round > 2) {
-                    neutralPlayer.addNewUnit(new RebellionArcher(), new PositionSlot(PositionSlot.Type.BOARD, 1, 2));
-                }
-                neutralPlayer.addNewUnit(new RebellionSoldier(), new PositionSlot(PositionSlot.Type.BOARD, 2, 1));
-                neutralPlayer.addNewUnit(new RebellionSoldier(), new PositionSlot(PositionSlot.Type.BOARD, 4, 1));
-                break;
-            case 2:
-                neutralPlayer.addNewUnit(new RebellionGiant(), new PositionSlot(PositionSlot.Type.BOARD, 0, 0));
-                neutralPlayer.addNewUnit(new RebellionGiant(), new PositionSlot(PositionSlot.Type.BOARD, 1, 2));
-                neutralPlayer.addNewUnit(new RebellionGiant(), new PositionSlot(PositionSlot.Type.BOARD, 5, 0));
-                break;
-            case 3:
-                neutralPlayer.addNewUnit(new RebellionAssasin(), new PositionSlot(PositionSlot.Type.BOARD, 1, 3));
-                neutralPlayer.addNewUnit(new RebellionAssasin(), new PositionSlot(PositionSlot.Type.BOARD, 2, 3));
-                neutralPlayer.addNewUnit(new RebellionAssasin(), new PositionSlot(PositionSlot.Type.BOARD, 3, 1));
-                neutralPlayer.addNewUnit(new RebellionAssasin(), new PositionSlot(PositionSlot.Type.BOARD, 4, 3));
-                neutralPlayer.addNewUnit(new RebellionAssasin(), new PositionSlot(PositionSlot.Type.BOARD, 5, 3));
-                break;
-            case 4:
-                neutralPlayer.addNewUnit(new RebellionElite(), new PositionSlot(PositionSlot.Type.BOARD, 1, 1));
-                neutralPlayer.addNewUnit(new RebellionElite(), new PositionSlot(PositionSlot.Type.BOARD, 2, 2));
-                neutralPlayer.addNewUnit(new RebellionElite(), new PositionSlot(PositionSlot.Type.BOARD, 3, 3));
-                neutralPlayer.addNewUnit(new RebellionElite(), new PositionSlot(PositionSlot.Type.BOARD, 4, 2));
-                neutralPlayer.addNewUnit(new RebellionElite(), new PositionSlot(PositionSlot.Type.BOARD, 5, 1));
-                break;
-            case 5:
-            default:
-                neutralPlayer.addNewUnit(new RebellionBaron(), new PositionSlot(PositionSlot.Type.BOARD, 3, 1));
-                break;
+        if (player1 instanceof ActualPlayer actualPlayer1) {
+            actualPlayer1.fillBoardFromBenchIfSpaceLeft();
+        }
+        if (player2 instanceof ActualPlayer actualPlayer2) {
+            actualPlayer2.fillBoardFromBenchIfSpaceLeft();
         }
     }
 
-    public void reroll(Player player) {
+    public void reroll(ActualPlayer actualPlayer) {
         // Put back old units
-        for (Unit oldShopUnit : player.getShopUnits()) {
+        for (Unit oldShopUnit : actualPlayer.getShopUnits()) {
             if (oldShopUnit != null) {
                 unitPoolsByCost[oldShopUnit.getCost() - 1].add(oldShopUnit);
             }
         }
         // Roll new units
-        int[] playerShopProbabilities = player.getShopProbabilities();
+        int[] playerShopProbabilities = actualPlayer.getShopProbabilities();
         Unit[] newShopUnits = new Unit[SHOP_SLOTS];
         for (int i = 0; i < SHOP_SLOTS; i++) {
             Unit unit = null;
@@ -337,7 +290,7 @@ public class Game implements GameSerializable {
             }
             newShopUnits[i] = unit;
         }
-        player.setShopUnits(newShopUnits);
+        actualPlayer.setShopUnits(newShopUnits);
     }
 
     private Integer rollShopUnitCostIndex(int[] shopProbabilities, int remainingProbabilitiesSum) {
@@ -356,12 +309,12 @@ public class Game implements GameSerializable {
     }
 
     private void offerAugments() {
-        for (Player player : actualPlayers) {
-            ArrayList<Augment> augments = Augments.createRandomAugments(Player.DECISION_OPTIONS_COUNT);
+        for (ActualPlayer actualPlayer : getActualPlayers()) {
+            ArrayList<Augment> augments = Augments.createRandomAugments(ActualPlayer.DECISION_OPTIONS_COUNT);
             Decision decision = new Decision(augments.stream()
-                    .map(augment -> new DecisionOption(augment.getTier(), augment.getName() + "\n\n" + augment.getDescription(), () -> player.addAugment(augment)))
+                    .map(augment -> new DecisionOption(augment.getTier(), augment.getName() + "\n\n" + augment.getDescription(), () -> actualPlayer.addAugment(augment)))
                     .toList());
-            player.addDecision(decision);
+            actualPlayer.addDecision(decision);
         }
     }
 
@@ -369,16 +322,28 @@ public class Game implements GameSerializable {
         tasks.add(new GameTask(runnable, delay));
     }
 
+    public List<ActualPlayer> getActualPlayers() {
+        return getPlayersStream(player -> player instanceof ActualPlayer).map(player -> (ActualPlayer) player).toList();
+    }
+
+    public List<NeutralPlayer> getNeutralPlayers() {
+        return getPlayersStream(player -> player instanceof NeutralPlayer).map(player -> (NeutralPlayer) player).toList();
+    }
+
     public Player getPlayerById(int id) {
         return getPlayer(player -> player.getId() == id);
     }
 
-    public Player getPlayerByAccountId(int accountId) {
-        return getPlayer(player -> (player.getAccountId() != null) && (player.getAccountId() == accountId));
+    public HumanPlayer getHumanPlayerByAccountId(int accountId) {
+        return (HumanPlayer) getPlayer(player -> (player instanceof HumanPlayer humanPlayer) && (humanPlayer.getAccountId() == accountId));
     }
 
     private Player getPlayer(Predicate<Player> predicate) {
-        return allPlayers.stream().filter(predicate).findAny().orElse(null);
+        return getPlayersStream(predicate).findAny().orElse(null);
+    }
+
+    private Stream<Player> getPlayersStream(Predicate<Player> predicate) {
+        return players.stream().filter(predicate);
     }
 
     public Board getBoardByOwnerId(int playerId) {
@@ -404,24 +369,20 @@ public class Game implements GameSerializable {
     }
 
     public boolean isFinished() {
-        return actualPlayers.stream().filter(Character::isAlive).count() <= 1;
+        return getActualPlayers().stream().filter(Character::isAlive).count() <= 1;
     }
 
     @Override
     public void writeForClient(BitOutputStream outputStream) throws IOException {
         outputStream.writeBits(phase, OptimizedBits.SIGNED_INT_TO_128);
-        outputStream.writeObjectList(allPlayers, OptimizedBits.SIGNED_INT_TO_32);
-        outputStream.writeObjectList(actualPlayers, OptimizedBits.SIGNED_INT_TO_16);
-        outputStream.writeObjectList(neutralPlayers, OptimizedBits.SIGNED_INT_TO_16);
+        outputStream.writeObjectList(players, OptimizedBits.SIGNED_INT_TO_32);
         outputStream.writeObjectList(boards, OptimizedBits.SIGNED_INT_TO_32);
     }
 
     @Override
     public void readForClient(BitInputStream inputStream) throws IOException {
         phase = inputStream.readBits(OptimizedBits.SIGNED_INT_TO_128);
-        allPlayers = inputStream.readObjectList(OptimizedBits.SIGNED_INT_TO_32);
-        actualPlayers = inputStream.readObjectList(OptimizedBits.SIGNED_INT_TO_16);
-        neutralPlayers = inputStream.readObjectList(OptimizedBits.SIGNED_INT_TO_16);
+        players = inputStream.readObjectList(OptimizedBits.SIGNED_INT_TO_32);
         boards = inputStream.readObjectList(OptimizedBits.SIGNED_INT_TO_32);
     }
 }

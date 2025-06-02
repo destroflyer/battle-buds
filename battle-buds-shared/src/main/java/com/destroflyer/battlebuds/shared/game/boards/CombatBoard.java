@@ -5,6 +5,7 @@ import com.destroflyer.battlebuds.shared.game.GameObject;
 import com.destroflyer.battlebuds.shared.game.PhaseMath;
 import com.destroflyer.battlebuds.shared.game.objects.Player;
 import com.destroflyer.battlebuds.shared.game.objects.Unit;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 
 public class CombatBoard extends Board {
 
@@ -20,7 +21,7 @@ public class CombatBoard extends Board {
         if ((finishTime == null) && isCombatOver()) {
             finishTime = time;
             for (Player player : owners) {
-                if (player.getCurrentHealth() != null) {
+                if (player instanceof ActualPlayer) {
                     int remainingEnemyUnits = (int) objects.stream().filter(object -> (object instanceof Unit unit) && unit.isActive() && (unit.getPlayer() != player)).count();
                     if (remainingEnemyUnits > 0) {
                         float damage = PhaseMath.getPlayerCombatLossDamage(game.getPhase(), remainingEnemyUnits);

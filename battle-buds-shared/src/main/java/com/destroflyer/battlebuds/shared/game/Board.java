@@ -24,7 +24,7 @@ public abstract class Board implements GameSerializable {
     protected Game game;
     @Getter
     @Setter
-    protected ArrayList<Player> owners;
+    protected List<? extends Player> owners;
     @Getter
     protected ArrayList<GameObject> objects = new ArrayList<>();
     @Getter
@@ -54,6 +54,10 @@ public abstract class Board implements GameSerializable {
     public void removeObject(GameObject object) {
         object.setBoard(null);
         objects.remove(object);
+    }
+
+    public void onStart() {
+
     }
 
     public abstract boolean isFinished();

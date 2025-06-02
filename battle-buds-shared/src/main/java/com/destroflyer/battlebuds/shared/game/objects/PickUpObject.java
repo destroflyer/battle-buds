@@ -1,5 +1,6 @@
 package com.destroflyer.battlebuds.shared.game.objects;
 
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 import lombok.Getter;
@@ -11,34 +12,34 @@ public abstract class PickUpObject extends PhysicsObject {
 
     @Getter
     @Setter
-    private Player owner;
+    private ActualPlayer owner;
 
     @Override
     public void update(float tpf) {
         super.update(tpf);
-        Player pickingUpPlayer = getPickingUpPlayer();
+        ActualPlayer pickingUpPlayer = getPickingUpPlayer();
         if (pickingUpPlayer != null) {
             onPickUp(pickingUpPlayer);
             requestRemoveFromBoard();
         }
     }
 
-    private Player getPickingUpPlayer() {
+    private ActualPlayer getPickingUpPlayer() {
         if (isForcedMoving()) {
             return null;
         }
         return game.getActualPlayers().stream()
-                .filter(player -> player.getBoard() == board)
+                .filter(actualPlayer -> actualPlayer.getBoard() == board)
                 .filter(this::canBePickupedBy)
                 .filter(this::isColliding)
                 .findAny().orElse(null);
     }
 
-    public boolean canBePickupedBy(Player player) {
-        return (owner == null) || (player == owner);
+    public boolean canBePickupedBy(ActualPlayer actualPlayer) {
+        return (owner == null) || (actualPlayer == owner);
     }
 
-    protected abstract void onPickUp(Player player);
+    protected abstract void onPickUp(ActualPlayer actualPlayer);
 
     @Override
     public void writeForClient(BitOutputStream outputStream) throws IOException {

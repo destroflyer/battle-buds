@@ -9,6 +9,8 @@ import com.destroflyer.battlebuds.client.models.ModelObject;
 import com.destroflyer.battlebuds.shared.game.*;
 import com.destroflyer.battlebuds.shared.game.boards.PlanningBoard;
 import com.destroflyer.battlebuds.shared.game.objects.*;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
+import com.destroflyer.battlebuds.shared.game.objects.players.HumanPlayer;
 import com.destroflyer.battlebuds.shared.network.messages.*;
 import com.jme3.app.Application;
 import com.jme3.app.state.AppStateManager;
@@ -120,7 +122,7 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     private void updateWorld() {
         GameAppState gameAppState = getAppState(GameAppState.class);
         Game game = gameAppState.getGame();
-        Player ownPlayer = gameAppState.getOwnPlayer();
+        HumanPlayer ownPlayer = gameAppState.getOwnPlayer();
         Board watchedBoard = ownPlayer.getWatchedBoard();
 
         updateGameObjects(game, ownPlayer, watchedBoard);
@@ -128,7 +130,7 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
         updateFilters(ownPlayer, watchedBoard);
     }
 
-    private void updateGameObjects(Game game, Player ownPlayer, Board watchedBoard) {
+    private void updateGameObjects(Game game, HumanPlayer ownPlayer, Board watchedBoard) {
         for (Map.Entry<Integer, GameObjectVisual> entry : gameObjectVisuals.entrySet().toArray(Map.Entry[]::new)) {
             Integer objectId = entry.getKey();
             GameObjectVisual visual = entry.getValue();
@@ -143,9 +145,9 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
             for (GameObject gameObject : watchedBoard.getObjects()) {
                 if (isGameObjectRelevant(game, gameObject)) {
                     VisualObject visualObject = (VisualObject) gameObject;
-                    Player player = ((visualObject instanceof Player p) ? p : null);
+                    ActualPlayer actualPlayer = ((visualObject instanceof ActualPlayer ap) ? ap : null);
                     Unit unit = ((visualObject instanceof Unit u) ? u : null);
-                    boolean displayName = ((player != null) || ((unit != null) && (unit.getStars() > 1)));
+                    boolean displayName = ((actualPlayer != null) || ((unit != null) && (unit.getStars() > 1)));
                     boolean displayHealthBar = (unit != null) && unit.isActive() && (unit.getCurrentHealth() != null);
                     boolean displayManaBar = (unit != null) && unit.isActive() && (unit.getCurrentMana() != null);
                     boolean displayItems = (unit != null) && (unit.getItems().size() > 0);
@@ -210,7 +212,7 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     }
 
     private boolean isGameObjectRelevant(Game game, GameObject gameObject) {
-        if (game.isWalkOnlyPhase() ? !(gameObject instanceof Player) : !(gameObject instanceof VisualObject)) {
+        if (game.isWalkOnlyPhase() ? !(gameObject instanceof ActualPlayer) : !(gameObject instanceof VisualObject)) {
             return false;
         }
         VisualObject visualObject = (VisualObject) gameObject;
@@ -221,7 +223,10 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
         for (int playerIndex = 0; playerIndex < goldIndicators.length; playerIndex++) {
             Integer gold = null;
             if ((!game.isWalkOnlyPhase()) && (watchedBoard != null) && (playerIndex < watchedBoard.getOwners().size())) {
-                gold = watchedBoard.getOwners().get(playerIndex).getGold();
+                Player owner = watchedBoard.getOwners().get(playerIndex);
+                if (owner instanceof ActualPlayer ownerActualPlayer) {
+                    gold = ownerActualPlayer.getGold();
+                }
             }
             for (int goldIndex = 0; goldIndex < goldIndicators[playerIndex].length; goldIndex++) {
                 boolean isVisible = ((gold != null) && (gold >= ((goldIndex + 1) * 10)));
@@ -230,7 +235,7 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
         }
     }
 
-    private void updateFilters(Player ownPlayer, Board watchedBoard) {
+    private void updateFilters(HumanPlayer ownPlayer, Board watchedBoard) {
         boolean shouldDisplayGrayscale = ((!ownPlayer.isAlive()) && ((watchedBoard == null) || (watchedBoard == ownPlayer.getOwnBoard())));
         boolean isDisplayingGrayscale = mainApplication.getFilterPostProcessor().getFilterList().contains(grayscaleFilter);
         if (shouldDisplayGrayscale) {
@@ -309,12 +314,13 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
         GameAppState gameAppState = getAppState(GameAppState.class);
         GameObject gameObject = gameAppState.getGame().getObjectById(objectId);
         if (gameObject instanceof Unit unit) {
-            Player ownPlayer = gameAppState.getOwnPlayer();
+            HumanPlayer ownPlayer = gameAppState.getOwnPlayer();
             if (unit.getPlayer() == ownPlayer) {
                 // Player.planningBoard is not synced to client, but we can just check by class
                 if (unit.getBoard() instanceof PlanningBoard) {
                     return true;
                 }
+                // TODO: Offer a method on the player to check if a unit is moveable in general
                 PositionSlot positionSlot = unit.getPlayer().getUnitPositionSlot(unit);
                 return (positionSlot != null) && (positionSlot.getType() == PositionSlot.Type.BENCH);
             }

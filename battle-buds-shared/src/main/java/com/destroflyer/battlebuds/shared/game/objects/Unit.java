@@ -2,6 +2,7 @@ package com.destroflyer.battlebuds.shared.game.objects;
 
 import com.destroflyer.battlebuds.shared.game.*;
 import com.destroflyer.battlebuds.shared.game.boards.PlanningBoard;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 import com.destroflyer.battlebuds.shared.network.OptimizedBits;
@@ -274,8 +275,10 @@ public class Unit extends Character {
             }
         });
         if (isAffectingOrAffectedByBonuses()) {
-            applyStatModifiers.accept(player.getAugments());
             applyStatModifiers.accept(player.getAllTraits());
+            if (player instanceof ActualPlayer actualPlayer) {
+                applyStatModifiers.accept(actualPlayer.getAugments());
+            }
         }
         applyStatModifiers.accept(items);
         applyStatModifiers.accept(buffs);
@@ -411,13 +414,38 @@ public class Unit extends Character {
         return null;
     }
 
-    @Override
-    public void drop(PickUpObject pickUpObject) {
-        super.drop(pickUpObject);
-        Player enemy = board.getOwners().stream().filter(owner -> owner != player).findAny().orElse(null);
-        if (enemy != null) {
-            pickUpObject.setOwner(enemy);
+    public void dropGoldForOwner(int minimumGold, int maximumGold) {
+        ifActualPlayer(player, actualPlayer -> dropGoldFor(minimumGold, maximumGold, actualPlayer));
+    }
+
+    public void dropGoldForEnemy(int minimumGold, int maximumGold) {
+        ifActualPlayer(getBoardEnemy(), enemyActualPlayer -> dropGoldFor(minimumGold, maximumGold, enemyActualPlayer));
+    }
+
+    public void dropGoldForOwner(int gold) {
+        ifActualPlayer(player, actualPlayer -> dropGoldFor(gold, actualPlayer));
+    }
+
+    public void dropGoldForEnemy(int gold) {
+        ifActualPlayer(getBoardEnemy(), enemyActualPlayer -> dropGoldFor(gold, enemyActualPlayer));
+    }
+
+    public void dropForOwner(PickUpObject pickUpObject) {
+        ifActualPlayer(player, actualPlayer -> dropFor(pickUpObject, actualPlayer));
+    }
+
+    public void dropForEnemy(PickUpObject pickUpObject) {
+        ifActualPlayer(getBoardEnemy(), actualPlayerEnemy -> dropFor(pickUpObject, actualPlayerEnemy));
+    }
+
+    private static void ifActualPlayer(Player player, Consumer<ActualPlayer> handleActualPlayer) {
+        if (player instanceof ActualPlayer actualPlayer) {
+            handleActualPlayer.accept(actualPlayer);
         }
+    }
+
+    private Player getBoardEnemy() {
+        return board.getOwners().stream().filter(owner -> owner != player).findAny().orElse(null);
     }
 
     @Override

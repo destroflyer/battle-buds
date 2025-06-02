@@ -7,6 +7,8 @@ import com.destroflyer.battlebuds.shared.game.Augment;
 import com.destroflyer.battlebuds.shared.game.boards.TimeBoard;
 import com.destroflyer.battlebuds.shared.game.objects.Player;
 import com.destroflyer.battlebuds.shared.game.objects.Unit;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
+import com.destroflyer.battlebuds.shared.game.objects.players.HumanPlayer;
 import com.destroflyer.battlebuds.shared.game.traits.Traits;
 import com.destroflyer.battlebuds.shared.network.messages.*;
 import com.jme3.app.Application;
@@ -529,7 +531,7 @@ public class GameGuiAppState extends BaseClientAppState {
         int padding = 3;
 
         int containerWidth = (padding + itemSize + padding);
-        int containerHeight = (padding + (Player.MAXIMUM_ITEM_COUNT * (itemSize + padding)));
+        int containerHeight = (padding + (ActualPlayer.MAXIMUM_ITEM_COUNT * (itemSize + padding)));
         int containerX = 0;
         int containerY = ((totalHeight / 2) + (containerHeight / 2));
 
@@ -542,12 +544,12 @@ public class GameGuiAppState extends BaseClientAppState {
         container.setPreferredSize(new Vector3f(containerWidth, containerHeight, 0));
         guiNodeItems.attachChild(container);
 
-        pansItemIcon = new Container[Player.MAXIMUM_ITEM_COUNT];
-        itemIconLocations = new Vector3f[Player.MAXIMUM_ITEM_COUNT];
-        itemMouseHoverListeners = new SimpleMouseHoverListener[Player.MAXIMUM_ITEM_COUNT];
+        pansItemIcon = new Container[ActualPlayer.MAXIMUM_ITEM_COUNT];
+        itemIconLocations = new Vector3f[ActualPlayer.MAXIMUM_ITEM_COUNT];
+        itemMouseHoverListeners = new SimpleMouseHoverListener[ActualPlayer.MAXIMUM_ITEM_COUNT];
         int itemX = containerX + padding;
         int itemY = containerY - padding;
-        for (int i = 0; i < Player.MAXIMUM_ITEM_COUNT; i++) {
+        for (int i = 0; i < ActualPlayer.MAXIMUM_ITEM_COUNT; i++) {
             int _i = i;
 
             Container panItemBackground = new Container();
@@ -723,9 +725,9 @@ public class GameGuiAppState extends BaseClientAppState {
         lblTitle.setColor(ColorRGBA.White);
         guiNodeDecision.attachChild(lblTitle);
 
-        containersDecisionOption = new Container[Player.DECISION_OPTIONS_COUNT];
-        lblsDecisionOption = new Label[Player.DECISION_OPTIONS_COUNT];
-        for (int i = 0; i < Player.DECISION_OPTIONS_COUNT; i++) {
+        containersDecisionOption = new Container[ActualPlayer.DECISION_OPTIONS_COUNT];
+        lblsDecisionOption = new Label[ActualPlayer.DECISION_OPTIONS_COUNT];
+        for (int i = 0; i < ActualPlayer.DECISION_OPTIONS_COUNT; i++) {
             int _i = i;
 
             Container containerDecisionOption = new Container();
@@ -804,8 +806,8 @@ public class GameGuiAppState extends BaseClientAppState {
         super.update(tpf);
         GameAppState gameAppState = getAppState(GameAppState.class);
         Game game = gameAppState.getGame();
-        Player ownPlayer = gameAppState.getOwnPlayer();
-        Player watchedPlayer = ownPlayer.getWatchedPlayer();
+        HumanPlayer ownPlayer = gameAppState.getOwnPlayer();
+        ActualPlayer watchedPlayer = ownPlayer.getWatchedPlayer();
         Board watchedBoard = ownPlayer.getWatchedBoard();
         Unit inspectedUnit = getInspectedUnit(game);
 
@@ -879,8 +881,8 @@ public class GameGuiAppState extends BaseClientAppState {
                     .map(trait -> new GuiVerticalListItem(TIER_COLORS.get(trait.getTier()), "textures/characters/dosaz.png", trait.getName() + " (" + traitCounts.get(trait) + ")", trait.getDescription(), null))
                     .toList();
             if (traits.size() > DISPLAYED_TRAITS) {
-                traits = traits.subList(0, Player.MAXIMUM_ITEM_COUNT);
-                moreTraitsCount = Player.MAXIMUM_ITEM_COUNT - traits.size();
+                traits = traits.subList(0, DISPLAYED_TRAITS);
+                moreTraitsCount = DISPLAYED_TRAITS - traits.size();
             }
         } else {
             traits = new LinkedList<>();
@@ -981,7 +983,7 @@ public class GameGuiAppState extends BaseClientAppState {
     }
 
     public void updateItems(List<GuiItem> items) {
-        for (int i = 0; i < Player.MAXIMUM_ITEM_COUNT; i++) {
+        for (int i = 0; i < ActualPlayer.MAXIMUM_ITEM_COUNT; i++) {
             int _i = i;
             boolean isVisible = i < items.size();
             GuiItem item = (isVisible ? items.get(i) : null);
@@ -1106,9 +1108,10 @@ public class GameGuiAppState extends BaseClientAppState {
             Player player = ((playerIndex < watchedBoard.getOwners().size()) ? watchedBoard.getOwners().get(playerIndex) : null);
             for (int i = 0; i < DISPLAYED_AUGMENTS; i++) {
                 int _i = i;
-                boolean isVisible = ((player != null) && (i < player.getAugments().size()));
+                boolean isVisible = ((player instanceof ActualPlayer actualPlayer) && (i < actualPlayer.getAugments().size()));
                 if (isVisible) {
-                    Augment augment = player.getAugments().get(i);
+                    ActualPlayer actualPlayer = (ActualPlayer) player;
+                    Augment augment = actualPlayer.getAugments().get(i);
                     lblsAugment[playerIndex][i].setText(augment.getName());
                     augmentHouseHoverListeners[playerIndex][i].setOnEnter(() -> showTooltip(containersAugment[_playerIndex][_i], augment.getDescription(), (_playerIndex == 0)));
                     augmentHouseHoverListeners[playerIndex][i].setOnExit(this::hideTooltip);

@@ -2,7 +2,7 @@ package com.destroflyer.battlebuds.client.appstates;
 
 import com.destroflyer.battlebuds.shared.Util;
 import com.destroflyer.battlebuds.shared.game.Game;
-import com.destroflyer.battlebuds.shared.game.objects.Player;
+import com.destroflyer.battlebuds.shared.game.objects.players.HumanPlayer;
 import com.destroflyer.battlebuds.shared.lobby.LobbyGame;
 import com.destroflyer.battlebuds.shared.network.NetworkUtil;
 import com.destroflyer.battlebuds.shared.network.messages.GameMessage;
@@ -44,8 +44,8 @@ public class GameAppState extends BaseClientAppState {
         });
     }
 
-    public Player getOwnPlayer() {
-        return game.getPlayerByAccountId(getOwnAccountId());
+    public HumanPlayer getOwnPlayer() {
+        return game.getHumanPlayerByAccountId(getOwnAccountId());
     }
 
     private int getOwnAccountId() {

@@ -3,7 +3,7 @@ package com.destroflyer.battlebuds.server.appstates;
 import com.destroflyer.battlebuds.shared.Account;
 import com.destroflyer.battlebuds.shared.Util;
 import com.destroflyer.battlebuds.shared.game.Game;
-import com.destroflyer.battlebuds.shared.game.objects.Player;
+import com.destroflyer.battlebuds.shared.game.objects.players.HumanPlayer;
 import com.destroflyer.battlebuds.shared.lobby.LobbyGame;
 import com.destroflyer.battlebuds.shared.network.NetworkUtil;
 import com.destroflyer.battlebuds.shared.network.messages.*;
@@ -96,18 +96,18 @@ public class ServerGamesAppState extends BaseServerAppState {
         getAppState(ServerLobbyAppState.class).stopGame(game.getLobbyGame());
     }
 
-    private void enqueueGameAction(Account account, Consumer<Player> onPlayerFound) {
+    private void enqueueGameAction(Account account, Consumer<HumanPlayer> onPlayerFound) {
         mainApplication.enqueue(() -> {
-            Player player = getPlayer(account.getId());
+            HumanPlayer player = getPlayer(account.getId());
             if (player != null) {
                 onPlayerFound.accept(player);
             }
         });
     }
 
-    private Player getPlayer(int accountId) {
+    private HumanPlayer getPlayer(int accountId) {
         for (Game game : games) {
-            Player player = game.getPlayerByAccountId(accountId);
+            HumanPlayer player = game.getHumanPlayerByAccountId(accountId);
             if (player != null) {
                 return player;
             }

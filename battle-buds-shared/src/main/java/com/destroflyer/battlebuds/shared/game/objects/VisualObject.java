@@ -1,9 +1,8 @@
 package com.destroflyer.battlebuds.shared.game.objects;
 
 import com.destroflyer.battlebuds.shared.game.GameObject;
-import com.destroflyer.battlebuds.shared.game.items.Items;
 import com.destroflyer.battlebuds.shared.game.objects.pickup.GoldCoin;
-import com.destroflyer.battlebuds.shared.game.objects.pickup.ItemLoot;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 import com.destroflyer.battlebuds.shared.network.OptimizedBits;
@@ -108,26 +107,23 @@ public class VisualObject extends GameObject {
         return ((getTargetPosition() != null) ? ActionState.WALK : ActionState.IDLE);
     }
 
-    public void dropGold(int minimumGold, int maximumGold) {
+    public void dropGoldFor(int minimumGold, int maximumGold, ActualPlayer owner) {
         int gold = minimumGold + (int) (Math.random() * (maximumGold + 1 - minimumGold));
-        dropGold(gold);
+        dropGoldFor(gold, owner);
     }
 
-    public void dropGold(int gold) {
+    public void dropGoldFor(int gold, ActualPlayer owner) {
         for (int i = 0; i < gold; i++) {
-            drop(new GoldCoin());
+            dropFor(new GoldCoin(), owner);
         }
     }
 
-    public void dropRandomComponent() {
-        drop(new ItemLoot(Items.createRandomComponent()));
+    public void dropFor(PickUpObject pickUpObject, ActualPlayer owner) {
+        pickUpObject.setOwner(owner);
+        drop(pickUpObject);
     }
 
-    public void dropRandomFullItem() {
-        drop(new ItemLoot(Items.createRandomFullItem()));
-    }
-
-    public void drop(PickUpObject pickUpObject) {
+    private void drop(PickUpObject pickUpObject) {
         board.drop(position, pickUpObject);
     }
 

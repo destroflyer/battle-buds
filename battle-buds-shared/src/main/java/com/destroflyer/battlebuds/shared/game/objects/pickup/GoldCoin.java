@@ -1,7 +1,7 @@
 package com.destroflyer.battlebuds.shared.game.objects.pickup;
 
 import com.destroflyer.battlebuds.shared.game.objects.PickUpObject;
-import com.destroflyer.battlebuds.shared.game.objects.Player;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 
 public class GoldCoin extends PickUpObject {
 
@@ -10,7 +10,7 @@ public class GoldCoin extends PickUpObject {
     }
 
     @Override
-    protected void onPickUp(Player player) {
-        player.addGold(1);
+    protected void onPickUp(ActualPlayer actualPlayer) {
+        actualPlayer.addGold(1);
     }
 }

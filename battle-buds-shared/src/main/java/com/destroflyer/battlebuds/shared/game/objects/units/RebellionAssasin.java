@@ -1,6 +1,7 @@
 package com.destroflyer.battlebuds.shared.game.objects.units;
 
 import com.destroflyer.battlebuds.shared.game.ChanceUtil;
+import com.destroflyer.battlebuds.shared.game.items.Items;
 import com.destroflyer.battlebuds.shared.game.objects.Unit;
 import com.destroflyer.battlebuds.shared.game.traits.AssassinTrait;
 
@@ -24,7 +25,7 @@ public class RebellionAssasin extends Unit {
     @Override
     protected void onDeath() {
         super.onDeath();
-        ChanceUtil.ifChance(0.7f, () -> dropGold(1, 3));
-        ChanceUtil.ifChance(0.5f, this::dropRandomComponent);
+        ChanceUtil.ifChance(0.7f, () -> dropGoldForEnemy(1, 3));
+        ChanceUtil.ifChance(0.5f, () -> dropForEnemy(Items.createRandomComponentLoot()));
     }
 }

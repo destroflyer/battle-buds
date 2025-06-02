@@ -2,6 +2,7 @@ package com.destroflyer.battlebuds.shared.game.items;
 
 import com.destroflyer.battlebuds.shared.Util;
 import com.destroflyer.battlebuds.shared.game.Item;
+import com.destroflyer.battlebuds.shared.game.objects.pickup.ItemLoot;
 
 public class Items {
 
@@ -125,6 +126,14 @@ public class Items {
             }
         }
         return false;
+    }
+
+    public static ItemLoot createRandomComponentLoot() {
+        return new ItemLoot(createRandomComponent());
+    }
+
+    public static ItemLoot createRandomFullItemLoot() {
+        return new ItemLoot(createRandomFullItem());
     }
 
     public static Item createRandomComponent() {

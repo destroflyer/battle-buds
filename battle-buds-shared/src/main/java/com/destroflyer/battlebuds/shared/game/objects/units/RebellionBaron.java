@@ -1,5 +1,6 @@
 package com.destroflyer.battlebuds.shared.game.objects.units;
 
+import com.destroflyer.battlebuds.shared.game.items.Items;
 import com.destroflyer.battlebuds.shared.game.objects.Unit;
 
 public class RebellionBaron extends Unit {
@@ -22,8 +23,8 @@ public class RebellionBaron extends Unit {
     @Override
     protected void onDeath() {
         super.onDeath();
-        dropRandomFullItem();
-        dropRandomFullItem();
-        dropGold(5, 10);
+        dropForEnemy(Items.createRandomFullItemLoot());
+        dropForEnemy(Items.createRandomFullItemLoot());
+        dropGoldForEnemy(5, 10);
     }
 }

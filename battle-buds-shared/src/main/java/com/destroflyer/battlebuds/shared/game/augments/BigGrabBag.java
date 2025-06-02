@@ -2,6 +2,7 @@ package com.destroflyer.battlebuds.shared.game.augments;
 
 import com.destroflyer.battlebuds.shared.game.Augment;
 import com.destroflyer.battlebuds.shared.game.Tier;
+import com.destroflyer.battlebuds.shared.game.items.Items;
 
 public class BigGrabBag extends Augment {
 
@@ -15,8 +16,8 @@ public class BigGrabBag extends Augment {
     public void onAdd() {
         super.onAdd();
         for (int i = 0; i < 3; i++) {
-            player.dropRandomComponent();
+            player.dropForSelf(Items.createRandomComponentLoot());
         }
-        player.addGold(2);
+        player.dropGoldForSelf(2);
     }
 }

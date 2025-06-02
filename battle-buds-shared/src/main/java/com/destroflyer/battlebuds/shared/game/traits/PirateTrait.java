@@ -23,9 +23,9 @@ public class PirateTrait extends Trait {
         if (units > 0) {
             double roll = Math.random();
             if (roll < 0.01) {
-                unit.dropGold(20);
+                unit.dropGoldForEnemy(20);
             } else if (roll < 0.3) {
-                unit.dropGold(1);
+                unit.dropGoldForEnemy(1);
             }
         }
     }

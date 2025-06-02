@@ -1,6 +1,6 @@
 package com.destroflyer.battlebuds.shared.game;
 
-import com.destroflyer.battlebuds.shared.game.objects.Player;
+import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 import com.destroflyer.battlebuds.shared.network.GameSerializable;
@@ -18,7 +18,7 @@ public class Augment implements GameSerializable, StatModifier, GameEventListene
     @Getter
     protected String description;
     @Setter
-    protected Player player;
+    protected ActualPlayer player;
 
     public void onAdd() {
 
