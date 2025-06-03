@@ -8,7 +8,7 @@ public class PlanningBoard extends TimeBoard {
     public void update(float tpf) {
         super.update(tpf);
         for (Player player : owners) {
-            // Easiest way to keep health and mana updated if traits/buffs change
+            // Easiest way to keep health and mana updated if stat modifiers change
             player.resetUnitsHealthAndMana();
         }
     }

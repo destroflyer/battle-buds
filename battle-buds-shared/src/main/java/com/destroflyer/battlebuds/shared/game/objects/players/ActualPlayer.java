@@ -5,6 +5,7 @@ import com.destroflyer.battlebuds.shared.game.items.Items;
 import com.destroflyer.battlebuds.shared.game.objects.PickupObject;
 import com.destroflyer.battlebuds.shared.game.objects.Player;
 import com.destroflyer.battlebuds.shared.game.objects.Unit;
+import com.destroflyer.battlebuds.shared.game.objects.pickup.ItemLoot;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 import com.destroflyer.battlebuds.shared.network.OptimizedBits;
@@ -27,7 +28,7 @@ public class ActualPlayer extends Player {
     private static final int MAXIMUM_LEVEL = 10;
     private static final int[] REQUIRED_EXPERIENCE_FOR_NEXT_LEVEL = new int[] {
         // TODO: For now, start with 4 instead of 2 XP required from level 1 to 2 (because of the free 2 XP from the very first planning phase) (but it shows as 2/4 therefore currently)
-        4, 2, 6, 10, 20, 36, 48, 72, 84
+        2, 2, 6, 10, 20, 36, 48, 72, 84
     };
     private static final int[][] SHOP_PROBABILITIES = new int[][] {
         new int[] { 100, 0, 0, 0, 0 },
@@ -62,16 +63,21 @@ public class ActualPlayer extends Player {
     private ArrayList<Decision> decisions = new ArrayList<>();
 
     @Override
+    public void onPlanningRoundStart() {
+        super.onPlanningRoundStart();
+        addExperience(getExperienceIncome());
+        addGold(getGoldIncome());
+        reroll();
+    }
+
+    @Override
     public void update(float tpf) {
         super.update(tpf);
-        Board ownBoard = getOwnBoard();
-        if (ownBoard == planningBoard) {
-            tryUpgradeUnits();
-        }
+        tryUpgradeUnits();
     }
 
     private void tryUpgradeUnits() {
-        boolean includingBoard = (getOwnBoard() == planningBoard);
+        boolean includingBoard = (game.getPhaseType() == PhaseType.PLANNING);
         AtomicReference<Boolean> tryToUpgrade = new AtomicReference<>(true);
         while (tryToUpgrade.get()) {
             tryToUpgrade.set(false);
@@ -117,8 +123,12 @@ public class ActualPlayer extends Player {
         int rerollCost = getRerollCost();
         if (canPayGold(rerollCost)) {
             payGold(rerollCost);
-            game.reroll(this);
+            reroll();
         }
+    }
+
+    private void reroll() {
+        game.reroll(this);
     }
 
     public int getBuyExperienceCost() {
@@ -127,6 +137,15 @@ public class ActualPlayer extends Player {
 
     public int getRerollCost() {
         return 2;
+    }
+
+    public int getExperienceIncome() {
+        // TODO: Augments
+        return getPhaseExperienceIncome();
+    }
+
+    private int getPhaseExperienceIncome() {
+        return ((game.getPhase() < 2) ? 0 : 2);
     }
 
     public void addExperience(int bonusExperience) {
@@ -151,13 +170,15 @@ public class ActualPlayer extends Player {
     }
 
     public int getGoldIncome() {
-        // TODO: Streak gold
+        // TODO: Streak gold, augments
         return getPhaseGoldIncome() + getGoldInterest();
     }
 
     private int getPhaseGoldIncome() {
         int phase = game.getPhase();
-        if (phase < 5) {
+        if (phase < 3) {
+            return 0;
+        } else if (phase < 5) {
             return 2;
         } else if (phase < 7) {
             return 3;
@@ -213,11 +234,14 @@ public class ActualPlayer extends Player {
     public void trySellUnit(int unitId) {
         if (canSellUnit(unitId)) {
             Unit unit = (Unit) game.getObjectById(unitId);
-            unit.reset();
-            removeSlotUnit(getUnitPositionSlot(unit), unit);
+            PositionSlot positionSlot = getUnitPositionSlot(unit);
             addGold(unit.getCost());
-            // TODO: Put back units in pool
-            // TODO: Put back items on bench
+            for (Item item : unit.getItems()) {
+                unit.dropForOwner(new ItemLoot(item));
+            }
+            game.addToUnitPool(unit);
+            // Needs to happen after adding it back to the pool (as the pool resets the units, including the removedFromBoard flag)
+            removeSlotUnit(positionSlot, unit);
         }
     }
 

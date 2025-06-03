@@ -892,7 +892,7 @@ public class GameGuiAppState extends BaseClientAppState {
 
         // Shop
 
-        boolean displayShop = isOwnPlayerSpecificGuiVisible;
+        boolean displayShop = (isOwnPlayerSpecificGuiVisible && (game.getPhase() > 2));
         if (displayShop) {
             GuiShopSlot[] shopSlots = new GuiShopSlot[ownPlayer.getShopUnits().length];
             for (int i = 0; i < shopSlots.length; i++) {

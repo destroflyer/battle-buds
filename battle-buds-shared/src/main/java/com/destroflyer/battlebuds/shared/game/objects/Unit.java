@@ -405,6 +405,10 @@ public class Unit extends Character {
         items.remove(item);
     }
 
+    public void removeItems() {
+        items.clear();
+    }
+
     public Item getFirstComponentItem() {
         for (Item item : items) {
             if (item.isComponent()) {

@@ -79,10 +79,9 @@ public class Game implements GameSerializable {
             int costIndex = firstUnit.getCost() - 1;
             for (int i = 0; i < UNIT_POOL_SIZES[costIndex]; i++) {
                 Unit unit = ((i == 0) ? firstUnit : createUnit.get());
-                unit.reset();
-                unitPoolsByCost[costIndex].add(unit);
+                addToUnitPool(unit);
 
-                // TODO: Test content
+                // FIXME: Test content
                 unit.setSpell(new TestSpell());
             }
         }
@@ -148,51 +147,10 @@ public class Game implements GameSerializable {
         boards.clear();
         tasks.clear();
 
-        List<ActualPlayer> aliveActualPlayers = getActualPlayers().stream().filter(Character::isAlive).toList();
-
         phase++;
+        createAndAddBoards();
+
         PhaseType phaseType = getPhaseType();
-        switch (phaseType) {
-            case CAROUSEL -> {
-                CarouselBoard carouselBoard = new CarouselBoard();
-                carouselBoard.setGame(this);
-                carouselBoard.setOwners(aliveActualPlayers);
-                boards.add(carouselBoard);
-            }
-            case PLANNING -> {
-                for (ActualPlayer actualPlayer : aliveActualPlayers) {
-                    actualPlayer.addExperience(2);
-                    actualPlayer.addGold(actualPlayer.getGoldIncome());
-                    reroll(actualPlayer);
-
-                    PlanningBoard planningBoard = actualPlayer.getPlanningBoard();
-                    planningBoard.reset();
-                    boards.add(planningBoard);
-                }
-            }
-            case COMBAT_NEUTRAL -> {
-                for (ActualPlayer actualPlayer : aliveActualPlayers) {
-                    // Technically it doesn't matter which neutral player to battle, but this could make debugging easier
-                    NeutralPlayer neutralPlayer = getNeutralPlayers().get(getActualPlayers().indexOf(actualPlayer));
-                    neutralPlayer.setupSlotUnits();
-                    addCombatBoard(new NeutralCombatBoard(), actualPlayer, neutralPlayer);
-                }
-            }
-            case COMBAT_PLAYER -> {
-                ArrayList<ActualPlayer> remainingPlayers = new ArrayList<>(aliveActualPlayers);
-                Collections.shuffle(remainingPlayers);
-                while (remainingPlayers.size() >= 2) {
-                    ActualPlayer actualPlayer1 = remainingPlayers.removeFirst();
-                    ActualPlayer actualPlayer2 = remainingPlayers.removeFirst();
-                    addCombatBoard(new PlayerCombatBoard(), actualPlayer1, actualPlayer2);
-                }
-                // No ghosts supported yet
-                if (remainingPlayers.size() > 0) {
-                    addPlanningBoard(remainingPlayers.getFirst());
-                }
-            }
-        }
-
         for (Board board : boards) {
             for (Player player : board.getOwners()) {
                 board.addObject(player);
@@ -223,6 +181,7 @@ public class Game implements GameSerializable {
                     }
                     // Easiest way for now to get the first unit
                     if (phase == 1) {
+                        actualPlayer.addGold(1);
                         actualPlayer.tryBuyUnit(0);
                         reroll(actualPlayer);
                     }
@@ -233,6 +192,45 @@ public class Game implements GameSerializable {
 
         if (PhaseMath.isAugmentOffered(phase)) {
             offerAugments();
+        }
+    }
+
+    private void createAndAddBoards() {
+        List<ActualPlayer> aliveActualPlayers = getActualPlayers().stream().filter(Character::isAlive).toList();
+        PhaseType phaseType = getPhaseType();
+        switch (phaseType) {
+            case CAROUSEL -> {
+                CarouselBoard carouselBoard = new CarouselBoard();
+                carouselBoard.setGame(this);
+                carouselBoard.setOwners(aliveActualPlayers);
+                boards.add(carouselBoard);
+            }
+            case PLANNING -> {
+                for (ActualPlayer actualPlayer : aliveActualPlayers) {
+                    addPlanningBoard(actualPlayer);
+                }
+            }
+            case COMBAT_NEUTRAL -> {
+                for (ActualPlayer actualPlayer : aliveActualPlayers) {
+                    // Technically it doesn't matter which neutral player to battle, but this could make debugging easier
+                    NeutralPlayer neutralPlayer = getNeutralPlayers().get(getActualPlayers().indexOf(actualPlayer));
+                    neutralPlayer.setupSlotUnits();
+                    addCombatBoard(new NeutralCombatBoard(), actualPlayer, neutralPlayer);
+                }
+            }
+            case COMBAT_PLAYER -> {
+                ArrayList<ActualPlayer> remainingPlayers = new ArrayList<>(aliveActualPlayers);
+                Collections.shuffle(remainingPlayers);
+                while (remainingPlayers.size() >= 2) {
+                    ActualPlayer actualPlayer1 = remainingPlayers.removeFirst();
+                    ActualPlayer actualPlayer2 = remainingPlayers.removeFirst();
+                    addCombatBoard(new PlayerCombatBoard(), actualPlayer1, actualPlayer2);
+                }
+                // No ghosts supported yet, so one player gets a free round
+                if (remainingPlayers.size() > 0) {
+                    addPlanningBoard(remainingPlayers.getFirst());
+                }
+            }
         }
     }
 
@@ -306,6 +304,13 @@ public class Game implements GameSerializable {
             }
         }
         return null;
+    }
+
+    public void addToUnitPool(Unit unit) {
+        int costIndex = unit.getCost() - 1;
+        unitPoolsByCost[costIndex].add(unit);
+        unit.reset();
+        unit.removeItems();
     }
 
     private void offerAugments() {

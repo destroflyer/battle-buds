@@ -12,6 +12,8 @@ public class BotPlayer extends ActualPlayer {
         autoWalkToPickupableObject();
         autoBuyShopUnits();
         autoDecide();
+        // Update again to set board of freshly buyed units - TODO: Improve
+        updateSlotUnitsBoardStates(false);
     }
 
     private void autoWalkToPickupableObject() {
