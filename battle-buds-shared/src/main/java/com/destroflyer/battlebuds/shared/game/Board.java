@@ -1,6 +1,6 @@
 package com.destroflyer.battlebuds.shared.game;
 
-import com.destroflyer.battlebuds.shared.game.objects.PickUpObject;
+import com.destroflyer.battlebuds.shared.game.objects.PickupObject;
 import com.destroflyer.battlebuds.shared.game.objects.Unit;
 import com.destroflyer.battlebuds.shared.game.objects.Player;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
@@ -103,15 +103,15 @@ public abstract class Board implements GameSerializable {
         return objects.stream().filter(o -> o.getId() == id).findAny().orElse(null);
     }
 
-    public void drop(Vector2f position, PickUpObject pickUpObject) {
-        pickUpObject.setPosition(position);
+    public void drop(Vector2f position, PickupObject pickupObject) {
+        pickupObject.setPosition(position);
         float angle = (float) (Math.random() * FastMath.TWO_PI);
         float radius = (float) (2 + (Math.random()) * 5);
         float additionalX = (float) (Math.sin(angle) * radius);
         float additionalY = (float) (Math.cos(angle) * radius);
         Vector2f targetPosition = position.add(new Vector2f(additionalX, additionalY));
-        pickUpObject.setTargetPosition(targetPosition, 0, 13f);
-        addObject(pickUpObject);
+        pickupObject.setTargetPosition(targetPosition, 0, 13f);
+        addObject(pickupObject);
     }
 
     @Override

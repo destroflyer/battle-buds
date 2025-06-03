@@ -135,12 +135,12 @@ public class Game implements GameSerializable {
     }
 
     private void startNextPhase() {
-        HashMap<ActualPlayer, ArrayList<PickUpObject>> leftoverOwnedPickUpObjects = new HashMap<>();
+        HashMap<ActualPlayer, ArrayList<PickupObject>> leftoverOwnedPickupObjects = new HashMap<>();
         for (Board board : boards) {
             board.onFinish();
             for (GameObject object : board.getObjects()) {
-                if ((object instanceof PickUpObject pickUpObject) && (pickUpObject.getOwner() != null)) {
-                    leftoverOwnedPickUpObjects.computeIfAbsent(pickUpObject.getOwner(), _ -> new ArrayList<>()).add(pickUpObject);
+                if ((object instanceof PickupObject pickupObject) && (pickupObject.getOwner() != null)) {
+                    leftoverOwnedPickupObjects.computeIfAbsent(pickupObject.getOwner(), _ -> new ArrayList<>()).add(pickupObject);
                 }
             }
         }
@@ -201,9 +201,9 @@ public class Game implements GameSerializable {
                 // Needs to be done before resetting, as resetting involves calculations that require the board to be set (Example: A trait bonus for maximum health that looks at the units on the board)
                 player.updateSlotUnitsBoardStates(true);
                 player.resetUnits();
-                if (leftoverOwnedPickUpObjects.containsKey(player)) {
-                    for (PickUpObject pickUpObject : leftoverOwnedPickUpObjects.get(player)) {
-                        board.addObject(pickUpObject);
+                if (leftoverOwnedPickupObjects.containsKey(player)) {
+                    for (PickupObject pickupObject : leftoverOwnedPickupObjects.get(player)) {
+                        board.addObject(pickupObject);
                     }
                 }
 

@@ -1,14 +1,14 @@
 package com.destroflyer.battlebuds.shared.game.objects.pickup;
 
 import com.destroflyer.battlebuds.shared.game.Item;
-import com.destroflyer.battlebuds.shared.game.objects.PickUpObject;
+import com.destroflyer.battlebuds.shared.game.objects.PickupObject;
 import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 
 import java.io.IOException;
 
-public class ItemLoot extends PickUpObject {
+public class ItemLoot extends PickupObject {
 
     private ItemLoot() {
         hasDynamicVisualName = true;

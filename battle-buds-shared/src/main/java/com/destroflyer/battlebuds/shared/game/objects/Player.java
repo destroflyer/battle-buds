@@ -142,6 +142,26 @@ public class Player extends Character implements GameEventListener {
     }
 
     private boolean canMoveUnit(int unitId, PositionSlot newPositionSlot) {
+        if (!canMoveUnit(unitId)) {
+            return false;
+        }
+        // Not allowed to add board units if not in planning phase
+        if ((game.getPhaseType() != PhaseType.PLANNING) && (newPositionSlot.getType() == PositionSlot.Type.BOARD)) {
+            return false;
+        }
+        Unit unit = (Unit) game.getObjectById(unitId);
+        PositionSlot oldPositionSlot = getUnitPositionSlot(unit);
+        // Not allowed to move a unit from bench to board if no board space remaining
+        if ((oldPositionSlot.getType() == PositionSlot.Type.BENCH) && (newPositionSlot.getType() == PositionSlot.Type.BOARD) && (getPositionSlotUnit(newPositionSlot) == null)) {
+            Integer remainingUnitsOnBoardCount = getRemainingUnitsOnBoardCount();
+            if ((remainingUnitsOnBoardCount != null) && (remainingUnitsOnBoardCount <= 0)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean canMoveUnit(int unitId) {
         GameObject gameObject = game.getObjectById(unitId);
         // Invalid id
         if (!(gameObject instanceof Unit unit)) {
@@ -156,16 +176,9 @@ public class Player extends Character implements GameEventListener {
         if (oldPositionSlot == null) {
             return false;
         }
-        // Not allowed to modify the board if not in planning phase
-        if ((game.getPhaseType() != PhaseType.PLANNING) && ((oldPositionSlot.getType() == PositionSlot.Type.BOARD) || (newPositionSlot.getType() == PositionSlot.Type.BOARD))) {
+        // Not allowed to move board units if not in planning phase
+        if ((game.getPhaseType() != PhaseType.PLANNING) && (oldPositionSlot.getType() == PositionSlot.Type.BOARD)) {
             return false;
-        }
-        // Not allowed to move a unit from bench to board if no board space remaining
-        if ((oldPositionSlot.getType() == PositionSlot.Type.BENCH) && (newPositionSlot.getType() == PositionSlot.Type.BOARD) && (getPositionSlotUnit(newPositionSlot) == null)) {
-            Integer remainingUnitsOnBoardCount = getRemainingUnitsOnBoardCount();
-            if ((remainingUnitsOnBoardCount != null) && (remainingUnitsOnBoardCount <= 0)) {
-                return false;
-            }
         }
         return true;
     }
@@ -207,7 +220,7 @@ public class Player extends Character implements GameEventListener {
         return null;
     }
 
-    private Unit getPositionSlotUnit(PositionSlot positionSlot) {
+    public Unit getPositionSlotUnit(PositionSlot positionSlot) {
         if (positionSlot.getType() == PositionSlot.Type.BENCH) {
             return benchUnits[positionSlot.getX()];
         } else {

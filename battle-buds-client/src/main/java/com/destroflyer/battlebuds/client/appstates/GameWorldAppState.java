@@ -7,7 +7,6 @@ import com.destroflyer.battlebuds.client.characters.ModelInfos;
 import com.destroflyer.battlebuds.client.filters.GrayScaleFilter;
 import com.destroflyer.battlebuds.client.models.ModelObject;
 import com.destroflyer.battlebuds.shared.game.*;
-import com.destroflyer.battlebuds.shared.game.boards.PlanningBoard;
 import com.destroflyer.battlebuds.shared.game.objects.*;
 import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
 import com.destroflyer.battlebuds.shared.game.objects.players.HumanPlayer;
@@ -40,9 +39,9 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     private HashMap<Integer, GameObjectVisual> gameObjectVisuals = new HashMap<>();
     private LinkedList<Animation> playingAnimations = new LinkedList<>();
     private Vector2f hoveredPosition;
+    private PositionSlot hoveredPositionSlot;
     @Getter
     private Integer hoveredObjectId;
-    @Getter
     private Integer draggedVisualObjectId;
     private Integer draggedVisualObjectPhaseAtStart;
     private GrayScaleFilter grayscaleFilter = new GrayScaleFilter();
@@ -87,10 +86,13 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     }
 
     private void updateHover() {
+        HumanPlayer ownPlayer = getAppState(GameAppState.class).getOwnPlayer();
         TerrainQuad terrain = getAppState(ForestBoardAppState.class).getTerrain();
 
         hoveredPosition = null;
-        hoveredObjectId = null;
+        hoveredPositionSlot = null;
+        Unit hoveredPositionSlotUnit = null;
+        Integer hoveredExactObjectId = null;
         CollisionResults results = mainApplication.getRayCastingResults_Cursor(mainApplication.getRootNode());
         for (int i = 0; i < results.size(); i++) {
             CollisionResult collisionResult = results.getCollision(i);
@@ -100,15 +102,28 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
                 if (collisionSpatial == terrain) {
                     if (hoveredPosition == null) {
                         hoveredPosition = new Vector2f(collisionResult.getContactPoint().getX(), collisionResult.getContactPoint().getZ());
+                        hoveredPositionSlot = BoardMath.getPositionSlot(hoveredPosition);
+                        hoveredPositionSlotUnit = ((hoveredPositionSlot != null) ? ownPlayer.getPositionSlotUnit(hoveredPositionSlot) : null);
                     }
-                } else if (hoveredObjectId == null) {
+                } else if (hoveredExactObjectId == null) {
                     Integer gameObjectId = collisionSpatial.getUserData("gameObjectId");
                     if (gameObjectId != null) {
-                        hoveredObjectId = gameObjectId;
+                        hoveredExactObjectId = gameObjectId;
                     }
                 }
             }
         }
+        hoveredObjectId = determineHoveredObjectId(hoveredPositionSlotUnit, hoveredExactObjectId);
+    }
+
+    private Integer determineHoveredObjectId(Unit hoveredPositionSlotUnit, Integer hoveredExactObjectId) {
+        Game game = getAppState(GameAppState.class).getGame();
+        if (hoveredPositionSlotUnit != null) {
+            if ((game.getPhaseType() == PhaseType.PLANNING) || (hoveredPositionSlot.getType() == PositionSlot.Type.BENCH)) {
+                return hoveredPositionSlotUnit.getId();
+            }
+        }
+        return hoveredExactObjectId;
     }
 
     private void updateDrag() {
@@ -283,10 +298,9 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
                         draggedVisualObjectId = hoveredObjectId;
                         draggedVisualObjectPhaseAtStart = gameAppState.getGame().getPhase();
                     }
-                } else  if (draggedVisualObjectId != null) {
-                    PositionSlot positionSlot = BoardMath.getPositionSlot(hoveredPosition);
-                    if (positionSlot != null) {
-                        clientNetworkAppState.send(new MoveUnitMessage(draggedVisualObjectId, positionSlot));
+                } else if (draggedVisualObjectId != null) {
+                    if (hoveredPositionSlot != null) {
+                        clientNetworkAppState.send(new MoveUnitMessage(draggedVisualObjectId, hoveredPositionSlot));
                     }
                     draggedVisualObjectId = null;
                     draggedVisualObjectPhaseAtStart = null;
@@ -311,21 +325,8 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     }
 
     private boolean isDraggable(int objectId) {
-        GameAppState gameAppState = getAppState(GameAppState.class);
-        GameObject gameObject = gameAppState.getGame().getObjectById(objectId);
-        if (gameObject instanceof Unit unit) {
-            HumanPlayer ownPlayer = gameAppState.getOwnPlayer();
-            if (unit.getPlayer() == ownPlayer) {
-                // Player.planningBoard is not synced to client, but we can just check by class
-                if (unit.getBoard() instanceof PlanningBoard) {
-                    return true;
-                }
-                // TODO: Offer a method on the player to check if a unit is moveable in general
-                PositionSlot positionSlot = unit.getPlayer().getUnitPositionSlot(unit);
-                return (positionSlot != null) && (positionSlot.getType() == PositionSlot.Type.BENCH);
-            }
-        }
-        return false;
+        HumanPlayer ownPlayer = getAppState(GameAppState.class).getOwnPlayer();
+        return (ownPlayer.canMoveUnit(objectId) || ownPlayer.canSellUnit(objectId));
     }
 
     @Override

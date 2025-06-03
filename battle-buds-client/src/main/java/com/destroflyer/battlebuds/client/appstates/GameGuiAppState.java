@@ -811,7 +811,8 @@ public class GameGuiAppState extends BaseClientAppState {
         Board watchedBoard = ownPlayer.getWatchedBoard();
         Unit inspectedUnit = getInspectedUnit(game);
 
-        boolean isPlayerSpecificGuiVisible = (!game.isWalkOnlyPhase() && ownPlayer.isAlive() && (watchedBoard != null));
+        boolean isPlayerSpecificGuiVisible = (!game.isWalkOnlyPhase() && (watchedBoard != null));
+        boolean isOwnPlayerSpecificGuiVisible = (isPlayerSpecificGuiVisible && (watchedPlayer == ownPlayer) && ownPlayer.isAlive());
 
         // Rounds
 
@@ -891,7 +892,7 @@ public class GameGuiAppState extends BaseClientAppState {
 
         // Shop
 
-        boolean displayShop = isPlayerSpecificGuiVisible;
+        boolean displayShop = isOwnPlayerSpecificGuiVisible;
         if (displayShop) {
             GuiShopSlot[] shopSlots = new GuiShopSlot[ownPlayer.getShopUnits().length];
             for (int i = 0; i < shopSlots.length; i++) {
@@ -942,7 +943,7 @@ public class GameGuiAppState extends BaseClientAppState {
 
         // Decision
 
-        boolean displayDecision = (isPlayerSpecificGuiVisible && (ownPlayer.getNextDecision() != null));
+        boolean displayDecision = (isOwnPlayerSpecificGuiVisible && (ownPlayer.getNextDecision() != null));
         if (displayDecision) {
             updateDecision(ownPlayer.getNextDecision());
         }

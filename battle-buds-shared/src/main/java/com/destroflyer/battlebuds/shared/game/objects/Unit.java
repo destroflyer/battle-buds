@@ -430,12 +430,12 @@ public class Unit extends Character {
         ifActualPlayer(getBoardEnemy(), enemyActualPlayer -> dropGoldFor(gold, enemyActualPlayer));
     }
 
-    public void dropForOwner(PickUpObject pickUpObject) {
-        ifActualPlayer(player, actualPlayer -> dropFor(pickUpObject, actualPlayer));
+    public void dropForOwner(PickupObject pickupObject) {
+        ifActualPlayer(player, actualPlayer -> dropFor(pickupObject, actualPlayer));
     }
 
-    public void dropForEnemy(PickUpObject pickUpObject) {
-        ifActualPlayer(getBoardEnemy(), actualPlayerEnemy -> dropFor(pickUpObject, actualPlayerEnemy));
+    public void dropForEnemy(PickupObject pickupObject) {
+        ifActualPlayer(getBoardEnemy(), actualPlayerEnemy -> dropFor(pickupObject, actualPlayerEnemy));
     }
 
     private static void ifActualPlayer(Player player, Consumer<ActualPlayer> handleActualPlayer) {

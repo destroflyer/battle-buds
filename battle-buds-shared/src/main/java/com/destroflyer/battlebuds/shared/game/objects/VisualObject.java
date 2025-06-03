@@ -118,13 +118,13 @@ public class VisualObject extends GameObject {
         }
     }
 
-    public void dropFor(PickUpObject pickUpObject, ActualPlayer owner) {
-        pickUpObject.setOwner(owner);
-        drop(pickUpObject);
+    public void dropFor(PickupObject pickupObject, ActualPlayer owner) {
+        pickupObject.setOwner(owner);
+        drop(pickupObject);
     }
 
-    private void drop(PickUpObject pickUpObject) {
-        board.drop(position, pickUpObject);
+    private void drop(PickupObject pickupObject) {
+        board.drop(position, pickupObject);
     }
 
     @Override

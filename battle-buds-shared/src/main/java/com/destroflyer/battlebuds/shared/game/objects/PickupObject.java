@@ -8,7 +8,7 @@ import lombok.Setter;
 
 import java.io.IOException;
 
-public abstract class PickUpObject extends PhysicsObject {
+public abstract class PickupObject extends PhysicsObject {
 
     @Getter
     @Setter

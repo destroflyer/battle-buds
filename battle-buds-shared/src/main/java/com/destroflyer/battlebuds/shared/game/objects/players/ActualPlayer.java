@@ -2,7 +2,7 @@ package com.destroflyer.battlebuds.shared.game.objects.players;
 
 import com.destroflyer.battlebuds.shared.game.*;
 import com.destroflyer.battlebuds.shared.game.items.Items;
-import com.destroflyer.battlebuds.shared.game.objects.PickUpObject;
+import com.destroflyer.battlebuds.shared.game.objects.PickupObject;
 import com.destroflyer.battlebuds.shared.game.objects.Player;
 import com.destroflyer.battlebuds.shared.game.objects.Unit;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
@@ -21,7 +21,7 @@ public class ActualPlayer extends Player {
     protected ActualPlayer() {
         hasDynamicName = true;
         hasDynamicVisualName = true;
-        baseMaximumHealth = 20f;
+        baseMaximumHealth = 100f;
         baseMovementSpeed = 8;
     }
     private static final int MAXIMUM_LEVEL = 10;
@@ -54,7 +54,7 @@ public class ActualPlayer extends Player {
     private int gold;
     @Getter
     @Setter
-    private Unit[] shopUnits = new Unit[Game.SHOP_SLOTS];
+    protected Unit[] shopUnits = new Unit[Game.SHOP_SLOTS];
     @Getter
     private ArrayList<Item> items = new ArrayList<>();
     @Getter
@@ -199,9 +199,15 @@ public class ActualPlayer extends Player {
     public void tryBuyUnit(int shopSlotIndex) {
         Unit unit = shopUnits[shopSlotIndex];
         if ((unit != null) && canBuyUnit(unit)) {
-            shopUnits[shopSlotIndex] = null;
-            addNewUnit(unit);
+            buyUnit(shopSlotIndex);
         }
+    }
+
+    private void buyUnit(int shopSlotIndex) {
+        Unit unit = shopUnits[shopSlotIndex];
+        payGold(unit.getCost());
+        shopUnits[shopSlotIndex] = null;
+        addNewUnit(unit);
     }
 
     public void trySellUnit(int unitId) {
@@ -215,10 +221,10 @@ public class ActualPlayer extends Player {
         }
     }
 
-    private boolean canSellUnit(int unitId) {
-        Unit unit = (Unit) game.getObjectById(unitId);
-        // Not allowed to sell units that don't exist
-        if (unit == null) {
+    public boolean canSellUnit(int unitId) {
+        GameObject gameObject = game.getObjectById(unitId);
+        // Not allowed to sell non-units (or ones that don't exist anymore)
+        if (!(gameObject instanceof Unit unit)) {
             return false;
         }
         // Not allowed to sell units of other players
@@ -265,10 +271,17 @@ public class ActualPlayer extends Player {
     @Override
     public float getMovementSpeed() {
         float movementSpeed = super.getMovementSpeed();
-        if (board.getObjects().stream().anyMatch(gameObject -> (gameObject instanceof PickUpObject pickUpObject) && pickUpObject.canBePickupedBy(this))) {
+        if (getPickupableObjectsOnBoard().size() > 0) {
             movementSpeed *= 2;
         }
         return movementSpeed;
+    }
+
+    protected List<PickupObject> getPickupableObjectsOnBoard() {
+        return board.getObjects().stream()
+                .filter(object -> (object instanceof PickupObject pickupObject) && pickupObject.canBePickupedBy(this))
+                .map(object -> (PickupObject) object)
+                .toList();
     }
 
     public void tryCombineBenchItems(int itemIndex1, int itemIndex2) {
@@ -383,8 +396,8 @@ public class ActualPlayer extends Player {
         dropGoldFor(gold, this);
     }
 
-    public void dropForSelf(PickUpObject pickUpObject) {
-        dropFor(pickUpObject, this);
+    public void dropForSelf(PickupObject pickupObject) {
+        dropFor(pickupObject, this);
     }
 
     @Override
