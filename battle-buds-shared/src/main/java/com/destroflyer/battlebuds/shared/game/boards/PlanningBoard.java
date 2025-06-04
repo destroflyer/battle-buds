@@ -1,6 +1,7 @@
 package com.destroflyer.battlebuds.shared.game.boards;
 
 import com.destroflyer.battlebuds.shared.game.objects.Player;
+import com.destroflyer.battlebuds.shared.game.objects.Unit;
 
 public class PlanningBoard extends TimeBoard {
 
@@ -9,7 +10,7 @@ public class PlanningBoard extends TimeBoard {
         super.update(tpf);
         for (Player player : owners) {
             // Easiest way to keep health and mana updated if stat modifiers change
-            player.resetUnitsHealthAndMana();
+            player.forEachSlotUnit(Unit::resetHealthAndMana, true);
         }
     }
 

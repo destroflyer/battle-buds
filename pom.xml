@@ -10,6 +10,7 @@
         <module>battle-buds-client</module>
         <module>battle-buds-server</module>
         <module>battle-buds-shared</module>
+        <module>battle-buds-test</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

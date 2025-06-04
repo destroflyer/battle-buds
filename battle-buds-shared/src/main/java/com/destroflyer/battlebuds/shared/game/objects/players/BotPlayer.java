@@ -10,10 +10,10 @@ public class BotPlayer extends ActualPlayer {
     public void update(float tpf) {
         super.update(tpf);
         autoWalkToPickupableObject();
-        autoBuyShopUnits();
-        autoDecide();
-        // Update again to set board of freshly buyed units - TODO: Improve
-        updateSlotUnitsBoardStates(false);
+        autoBuyUnits();
+        autoSellUnits();
+        tryBuyExperience();
+        tryDecide(0);
     }
 
     private void autoWalkToPickupableObject() {
@@ -24,13 +24,15 @@ public class BotPlayer extends ActualPlayer {
         }
     }
 
-    private void autoBuyShopUnits() {
+    private void autoBuyUnits() {
         for (int i = 0; i < shopUnits.length; i++) {
             tryBuyUnit(i);
         }
     }
 
-    private void autoDecide() {
-        tryDecide(0);
+    private void autoSellUnits() {
+        if (benchUnits[0] != null) {
+            trySellUnit(benchUnits[0].getId());
+        }
     }
 }

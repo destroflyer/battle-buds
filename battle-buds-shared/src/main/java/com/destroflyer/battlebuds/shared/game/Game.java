@@ -38,7 +38,7 @@ public class Game implements GameSerializable {
         // Players
 
         int actualPlayerCount = lobbyGame.getGameMode().getPlayerCount();
-        if (actualPlayerCount == 1) {
+        if (actualPlayerCount < 2) {
             actualPlayerCount = 8;
         }
         int botsCount = (actualPlayerCount - lobbyGame.getPlayers().size());
@@ -154,11 +154,7 @@ public class Game implements GameSerializable {
         for (Board board : boards) {
             for (Player player : board.getOwners()) {
                 board.addObject(player);
-                // Needs to be done before updating slot unit board states (so that they will be added to the board)
-                player.resetUnitsRemovedFromBoard();
-                // Needs to be done before resetting, as resetting involves calculations that require the board to be set (Example: A trait bonus for maximum health that looks at the units on the board)
-                player.updateSlotUnitsBoardStates(true);
-                player.resetUnits();
+                player.setupBoardForNewPhase();
                 if (leftoverOwnedPickupObjects.containsKey(player)) {
                     for (PickupObject pickupObject : leftoverOwnedPickupObjects.get(player)) {
                         board.addObject(pickupObject);
@@ -214,7 +210,6 @@ public class Game implements GameSerializable {
                 for (ActualPlayer actualPlayer : aliveActualPlayers) {
                     // Technically it doesn't matter which neutral player to battle, but this could make debugging easier
                     NeutralPlayer neutralPlayer = getNeutralPlayers().get(getActualPlayers().indexOf(actualPlayer));
-                    neutralPlayer.setupSlotUnits();
                     addCombatBoard(new NeutralCombatBoard(), actualPlayer, neutralPlayer);
                 }
             }
@@ -247,13 +242,6 @@ public class Game implements GameSerializable {
         boardOwners.add(player2);
         combatBoard.setOwners(boardOwners);
         boards.add(combatBoard);
-
-        if (player1 instanceof ActualPlayer actualPlayer1) {
-            actualPlayer1.fillBoardFromBenchIfSpaceLeft();
-        }
-        if (player2 instanceof ActualPlayer actualPlayer2) {
-            actualPlayer2.fillBoardFromBenchIfSpaceLeft();
-        }
     }
 
     public void reroll(ActualPlayer actualPlayer) {
@@ -310,7 +298,6 @@ public class Game implements GameSerializable {
         int costIndex = unit.getCost() - 1;
         unitPoolsByCost[costIndex].add(unit);
         unit.reset();
-        unit.removeItems();
     }
 
     private void offerAugments() {

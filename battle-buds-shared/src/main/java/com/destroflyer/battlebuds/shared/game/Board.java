@@ -42,6 +42,12 @@ public abstract class Board implements GameSerializable {
         }
     }
 
+    public void tryAddObject(GameObject object) {
+        if (object.getBoard() != this) {
+            addObject(object);
+        }
+    }
+
     public void addObject(GameObject object) {
         game.register(object);
         if (object.getBoard() != null) {

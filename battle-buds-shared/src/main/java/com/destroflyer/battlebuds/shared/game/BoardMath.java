@@ -42,12 +42,11 @@ public class BoardMath {
         return null;
     }
 
-    public static Vector2f getBenchPosition(int benchIndex) {
-        return getSlotPosition(benchIndex, 0, BENCH_X, BENCH_Y, BENCH_SLOT_WIDTH, BENCH_SLOT_HEIGHT);
-    }
-
-    public static Vector2f getBoardPosition(int x, int y) {
-        return getSlotPosition(x, y, BOARD_X, BOARD_Y, BOARD_SLOT_WIDTH, BOARD_SLOT_HEIGHT);
+    public static Vector2f getSlotPosition(PositionSlot positionSlot) {
+        if (positionSlot.getType() == PositionSlot.Type.BENCH) {
+            return getSlotPosition(positionSlot.getX(), 0, BENCH_X, BENCH_Y, BENCH_SLOT_WIDTH, BENCH_SLOT_HEIGHT);
+        }
+        return getSlotPosition(positionSlot.getX(), positionSlot.getY(), BOARD_X, BOARD_Y, BOARD_SLOT_WIDTH, BOARD_SLOT_HEIGHT);
     }
 
     private static Vector2f getSlotPosition(int slotX, int slotY, float areaX, float areaY, float slotWidth, float slotHeight) {

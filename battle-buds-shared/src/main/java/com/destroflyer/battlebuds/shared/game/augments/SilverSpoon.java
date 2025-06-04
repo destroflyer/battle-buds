@@ -14,6 +14,6 @@ public class SilverSpoon extends Augment {
     @Override
     public void onAdd() {
         super.onAdd();
-        player.addExperience(10);
+        player.tryAddExperience(10);
     }
 }

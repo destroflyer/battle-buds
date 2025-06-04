@@ -63,9 +63,30 @@ public class ActualPlayer extends Player {
     private ArrayList<Decision> decisions = new ArrayList<>();
 
     @Override
+    protected void autofillUnitSlots() {
+        super.autofillUnitSlots();
+        int slotsToFill = getRemainingUnitsOnBoardCount();
+        int benchIndex = 0;
+        for (int y = (BOARD_SLOTS_Y - 1); y >= 0; y--) {
+            for (int x = 0; x < BOARD_SLOTS_X; x++) {
+                if ((slotsToFill > 0) && (boardUnits[x][y] == null)) {
+                    for (; benchIndex < benchUnits.length; benchIndex++) {
+                        Unit benchUnit = benchUnits[benchIndex];
+                        if (benchUnit != null) {
+                            moveUnit(new PositionSlot(PositionSlot.Type.BENCH, benchIndex, 0), new PositionSlot(PositionSlot.Type.BOARD, x, y));
+                            slotsToFill--;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
     public void onPlanningRoundStart() {
         super.onPlanningRoundStart();
-        addExperience(getExperienceIncome());
+        tryAddExperience(getExperienceIncome());
         addGold(getGoldIncome());
         reroll();
     }
@@ -81,11 +102,9 @@ public class ActualPlayer extends Player {
         AtomicReference<Boolean> tryToUpgrade = new AtomicReference<>(true);
         while (tryToUpgrade.get()) {
             tryToUpgrade.set(false);
-            forEachUnitSlot((slotWithUnit) -> {
-                if (slotWithUnit.getUnit() != null) {
-                    if (tryUpgradeUnit(slotWithUnit.getUnit(), includingBoard)) {
-                        tryToUpgrade.set(true);
-                    }
+            forEachSlotUnit(unit -> {
+                if (tryUpgradeUnit(unit, includingBoard)) {
+                    tryToUpgrade.set(true);
                 }
             }, includingBoard);
         }
@@ -93,9 +112,9 @@ public class ActualPlayer extends Player {
 
     private boolean tryUpgradeUnit(Unit unit, boolean includingBoard) {
         ArrayList<PositionSlotWithUnit> compatibleSlotsWithUnits = new ArrayList<>();
-        forEachUnitSlot((slotWithUnit) -> {
-            if ((slotWithUnit.getUnit() != null) && (slotWithUnit.getUnit() != unit) && slotWithUnit.getUnit().isCompatibleWith(unit)) {
-                compatibleSlotsWithUnits.add(slotWithUnit);
+        forEachUnitSlot((positionSlot, slotUnit) -> {
+            if ((slotUnit != null) && (slotUnit != unit) && slotUnit.isCompatibleWith(unit)) {
+                compatibleSlotsWithUnits.add(new PositionSlotWithUnit(positionSlot, slotUnit));
             }
         }, includingBoard);
         if (compatibleSlotsWithUnits.size() >= (COMPATIBLE_UNITS_FOR_UPGRADE - 1)) {
@@ -110,7 +129,7 @@ public class ActualPlayer extends Player {
     }
 
     public void tryBuyExperience() {
-        if (!isMaximumLevel()) {
+        if (canBuyExperience()) {
             int buyExperienceCost = getBuyExperienceCost();
             if (canPayGold(buyExperienceCost)) {
                 payGold(buyExperienceCost);
@@ -119,24 +138,12 @@ public class ActualPlayer extends Player {
         }
     }
 
-    public void tryBuyReroll() {
-        int rerollCost = getRerollCost();
-        if (canPayGold(rerollCost)) {
-            payGold(rerollCost);
-            reroll();
-        }
-    }
-
-    private void reroll() {
-        game.reroll(this);
+    private boolean canBuyExperience() {
+        return canAddExperience() && canPayGold(getBuyExperienceCost());
     }
 
     public int getBuyExperienceCost() {
         return 4;
-    }
-
-    public int getRerollCost() {
-        return 2;
     }
 
     public int getExperienceIncome() {
@@ -148,7 +155,17 @@ public class ActualPlayer extends Player {
         return ((game.getPhase() < 2) ? 0 : 2);
     }
 
-    public void addExperience(int bonusExperience) {
+    public void tryAddExperience(int bonusExperience) {
+        if (canAddExperience()) {
+            addExperience(bonusExperience);
+        }
+    }
+
+    private boolean canAddExperience() {
+        return (getRequiredExperienceForNextLevel() != null);
+    }
+
+    private void addExperience(int bonusExperience) {
         this.experience += bonusExperience;
         int requiredExperienceForNextLevel = getRequiredExperienceForNextLevel();
         while (this.experience >= requiredExperienceForNextLevel) {
@@ -167,6 +184,25 @@ public class ActualPlayer extends Player {
 
     private boolean isMaximumLevel() {
         return level >= MAXIMUM_LEVEL;
+    }
+
+    public void tryBuyReroll() {
+        if (canBuyReroll()) {
+            payGold(getRerollCost());
+            reroll();
+        }
+    }
+
+    private boolean canBuyReroll() {
+        return canPayGold(getRerollCost());
+    }
+
+    public int getRerollCost() {
+        return 2;
+    }
+
+    private void reroll() {
+        game.reroll(this);
     }
 
     public int getGoldIncome() {
@@ -229,20 +265,31 @@ public class ActualPlayer extends Player {
         payGold(unit.getCost());
         shopUnits[shopSlotIndex] = null;
         addNewUnit(unit);
+        // Because of the delayed removedFromBoard flag setup, it's possible for a player to roll+buy a unit that was just sold and put into the pool.
+        // It would therefore still have removedFromBoard=true here, and would (if not reset) be immediately removed from the new players board.
+        unit.resetRemoveFromBoard();
     }
 
     public void trySellUnit(int unitId) {
         if (canSellUnit(unitId)) {
-            Unit unit = (Unit) game.getObjectById(unitId);
-            PositionSlot positionSlot = getUnitPositionSlot(unit);
-            addGold(unit.getCost());
-            for (Item item : unit.getItems()) {
-                unit.dropForOwner(new ItemLoot(item));
-            }
-            game.addToUnitPool(unit);
-            // Needs to happen after adding it back to the pool (as the pool resets the units, including the removedFromBoard flag)
-            removeSlotUnit(positionSlot, unit);
+            sellUnit(unitId);
         }
+    }
+
+    private void sellUnit(int unitId) {
+        Unit unit = (Unit) game.getObjectById(unitId);
+        PositionSlot positionSlot = getUnitPositionSlot(unit);
+        addGold(unit.getCost());
+        for (Item item : unit.getItems()) {
+            unit.dropForOwner(new ItemLoot(item));
+        }
+        unit.removeItems();
+        game.addToUnitPool(unit);
+        // Needs to happen after resetting (which would otherwise reset the removedFromBoard flag again).
+        // Another reason for the delayed removedFromBoard flag setup not being ideal here, is that it requires resetting the flag again to be safe when buying
+        // (This is because it's possible for a player to roll+buy a unit that was just sold and put into the pool, before it was removed from the board and
+        // would otherwise be immediately removed from the new players board).
+        removeSlotUnit(positionSlot, unit);
     }
 
     public boolean canSellUnit(int unitId) {
@@ -266,25 +313,6 @@ public class ActualPlayer extends Player {
 
     private boolean canBuyUnit(Unit unit) {
         return canPayGold(unit.getCost()) && canAddUnit();
-    }
-
-    public void fillBoardFromBenchIfSpaceLeft() {
-        int slotsToFill = getRemainingUnitsOnBoardCount();
-        int benchIndex = 0;
-        for (int y = (BOARD_SLOTS_Y - 1); y >= 0; y--) {
-            for (int x = 0; x < BOARD_SLOTS_X; x++) {
-                if ((slotsToFill > 0) && (boardUnits[x][y] == null)) {
-                    for (; benchIndex < benchUnits.length; benchIndex++) {
-                        Unit benchUnit = benchUnits[benchIndex];
-                        if (benchUnit != null) {
-                            moveUnit(new PositionSlot(PositionSlot.Type.BENCH, benchIndex, 0), new PositionSlot(PositionSlot.Type.BOARD, x, y));
-                            slotsToFill--;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
     }
 
     @Override

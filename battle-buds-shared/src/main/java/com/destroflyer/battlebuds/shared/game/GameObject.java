@@ -17,8 +17,6 @@ public class GameObject implements GameSerializable, GameEventListener {
     @Getter
     @Setter
     protected Board board;
-    @Setter
-    private Float lifetime;
     @Getter
     private boolean removedFromBoard;
 
@@ -32,12 +30,7 @@ public class GameObject implements GameSerializable, GameEventListener {
     }
 
     public void update(float tpf) {
-        if (lifetime != null) {
-            lifetime -= tpf;
-            if (lifetime <= 0) {
-                requestRemoveFromBoard();
-            }
-        }
+
     }
 
     public void requestRemoveFromBoard() {
