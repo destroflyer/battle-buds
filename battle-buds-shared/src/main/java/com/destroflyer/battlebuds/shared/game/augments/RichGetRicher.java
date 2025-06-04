@@ -14,7 +14,7 @@ public class RichGetRicher extends Augment {
     @Override
     public void onAdd() {
         super.onAdd();
-        player.addGold(12);
+        player.dropGoldForSelf(12);
     }
 
     @Override

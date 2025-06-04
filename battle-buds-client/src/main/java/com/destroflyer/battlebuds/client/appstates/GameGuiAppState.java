@@ -811,7 +811,7 @@ public class GameGuiAppState extends BaseClientAppState {
         Board watchedBoard = ownPlayer.getWatchedBoard();
         Unit inspectedUnit = getInspectedUnit(game);
 
-        boolean isPlayerSpecificGuiVisible = (!game.isWalkOnlyPhase() && (watchedBoard != null));
+        boolean isPlayerSpecificGuiVisible = ((watchedBoard != null) && !watchedBoard.isWalkOnly());
         boolean isOwnPlayerSpecificGuiVisible = (isPlayerSpecificGuiVisible && (watchedPlayer == ownPlayer) && ownPlayer.isAlive());
 
         // Rounds

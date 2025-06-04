@@ -6,6 +6,10 @@ import com.jme3.math.Vector2f;
 
 public class CarouselBoard extends TimeBoard {
 
+    public CarouselBoard() {
+        isWalkOnly = true;
+    }
+
     @Override
     public void onStart() {
         super.onStart();

@@ -27,7 +27,6 @@ public class ActualPlayer extends Player {
     }
     private static final int MAXIMUM_LEVEL = 10;
     private static final int[] REQUIRED_EXPERIENCE_FOR_NEXT_LEVEL = new int[] {
-        // TODO: For now, start with 4 instead of 2 XP required from level 1 to 2 (because of the free 2 XP from the very first planning phase) (but it shows as 2/4 therefore currently)
         2, 2, 6, 10, 20, 36, 48, 72, 84
     };
     private static final int[][] SHOP_PROBABILITIES = new int[][] {
@@ -98,7 +97,7 @@ public class ActualPlayer extends Player {
     }
 
     private void tryUpgradeUnits() {
-        boolean includingBoard = (game.getPhaseType() == PhaseType.PLANNING);
+        boolean includingBoard = isOnOwnPlanningBoard();
         AtomicReference<Boolean> tryToUpgrade = new AtomicReference<>(true);
         while (tryToUpgrade.get()) {
             tryToUpgrade.set(false);
@@ -307,8 +306,8 @@ public class ActualPlayer extends Player {
         if (positionSlot == null) {
             return false;
         }
-        // Not allowed to sell board units during battle
-        return (getOwnBoard() == planningBoard) || (positionSlot.getType() != PositionSlot.Type.BOARD);
+        // Not allowed to sell board units when not on planning board
+        return (isOnOwnPlanningBoard() || (positionSlot.getType() != PositionSlot.Type.BOARD));
     }
 
     private boolean canBuyUnit(Unit unit) {

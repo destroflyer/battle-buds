@@ -27,8 +27,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.destroflyer.battlebuds.shared.game.PhaseType.CAROUSEL;
-
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Game implements GameSerializable {
 
@@ -48,14 +46,12 @@ public class Game implements GameSerializable {
             HumanPlayer humanPlayer = new HumanPlayer(account.getId());
             humanPlayer.setName(account.getLogin());
             humanPlayer.setVisualName(lobbyPlayer.getCharacterName());
-            initializeActualPlayer(humanPlayer);
             players.add(humanPlayer);
         }
         for (int i = 0; i < botsCount; i++) {
             BotPlayer botPlayer = new BotPlayer();
             botPlayer.setName("Bot " + (i + 1));
             botPlayer.setVisualName("garmon");
-            initializeActualPlayer(botPlayer);
             players.add(botPlayer);
         }
         for (int i = 0; i < actualPlayerCount; i++) {
@@ -104,15 +100,6 @@ public class Game implements GameSerializable {
     private int nextObjectId = 1;
     private ArrayList<GameTask> tasks = new ArrayList<>();
 
-    private void initializeActualPlayer(ActualPlayer actualPlayer) {
-        PlanningBoard planningBoard = new PlanningBoard();
-        planningBoard.setGame(this);
-        ArrayList<Player> planningBoardOwners = new ArrayList<>();
-        planningBoardOwners.add(actualPlayer);
-        planningBoard.setOwners(planningBoardOwners);
-        actualPlayer.setPlanningBoard(planningBoard);
-    }
-
     public void register(GameObject object) {
         if (!object.isRegistered()) {
             object.register(this, nextObjectId++);
@@ -150,7 +137,6 @@ public class Game implements GameSerializable {
         phase++;
         createAndAddBoards();
 
-        PhaseType phaseType = getPhaseType();
         for (Board board : boards) {
             for (Player player : board.getOwners()) {
                 board.addObject(player);
@@ -161,14 +147,10 @@ public class Game implements GameSerializable {
                     }
                 }
 
-                switch (phaseType) {
-                    case PhaseType.PLANNING:
-                        player.onPlanningRoundStart();
-                        break;
-                    case PhaseType.COMBAT_NEUTRAL:
-                    case PhaseType.COMBAT_PLAYER:
-                        player.onCombatRoundStart();
-                        break;
+                if (board instanceof PlanningBoard) {
+                    player.onPlanningRoundStart();
+                } else if (board instanceof CombatBoard) {
+                    player.onCombatRoundStart();
                 }
 
                 if (player instanceof ActualPlayer actualPlayer) {
@@ -193,7 +175,7 @@ public class Game implements GameSerializable {
 
     private void createAndAddBoards() {
         List<ActualPlayer> aliveActualPlayers = getActualPlayers().stream().filter(Character::isAlive).toList();
-        PhaseType phaseType = getPhaseType();
+        PhaseType phaseType = PhaseMath.getPhaseType(phase);
         switch (phaseType) {
             case CAROUSEL -> {
                 CarouselBoard carouselBoard = new CarouselBoard();
@@ -230,8 +212,11 @@ public class Game implements GameSerializable {
     }
 
     private void addPlanningBoard(ActualPlayer actualPlayer) {
-        PlanningBoard planningBoard = actualPlayer.getPlanningBoard();
-        planningBoard.reset();
+        PlanningBoard planningBoard = new PlanningBoard();
+        planningBoard.setGame(this);
+        ArrayList<Player> planningBoardOwners = new ArrayList<>();
+        planningBoardOwners.add(actualPlayer);
+        planningBoard.setOwners(planningBoardOwners);
         boards.add(planningBoard);
     }
 
@@ -350,14 +335,6 @@ public class Game implements GameSerializable {
             }
         }
         return null;
-    }
-
-    public boolean isWalkOnlyPhase() {
-        return getPhaseType() == CAROUSEL;
-    }
-
-    public PhaseType getPhaseType() {
-        return PhaseMath.getPhaseType(phase);
     }
 
     public boolean isFinished() {

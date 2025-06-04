@@ -37,6 +37,7 @@ public class ForestBoardAppState extends BaseClientAppState {
         material.setBoolean("useTriPlanarMapping", true);
         material.setTexture("AlphaMap", assetManager.loadTexture("textures/boards/forest_alpha.png"));
         material.setTexture("AlphaMap_1", assetManager.loadTexture("textures/boards/forest_alpha_1.png"));
+        material.setTexture("AlphaMap_2", assetManager.loadTexture("textures/boards/forest_alpha_2.png"));
 
         Texture grass = assetManager.loadTexture("textures/terrain/grass.png");
         grass.setWrap(Texture.WrapMode.Repeat);
@@ -77,6 +78,19 @@ public class ForestBoardAppState extends BaseClientAppState {
 
     private static float getTextureScale(TerrainQuad terrain, float scale, boolean triPlanarMapping) {
         return (triPlanarMapping ? (1 / (terrain.getTotalSize() / scale)) : scale);
+    }
+
+    public void setBoardGridVisible(boolean visible) {
+        Material material = terrain.getMaterial();
+        if (visible) {
+            Texture black = mainApplication.getAssetManager().loadTexture("textures/black_border.png");
+            black.setWrap(Texture.WrapMode.Repeat);
+            material.setTexture("DiffuseMap_8", black);
+            material.setFloat("DiffuseMap_8_scale", 1);
+        } else {
+            material.clearParam("DiffuseMap_8");
+            material.clearParam("DiffuseMap_8_scale");
+        }
     }
 
     @Override

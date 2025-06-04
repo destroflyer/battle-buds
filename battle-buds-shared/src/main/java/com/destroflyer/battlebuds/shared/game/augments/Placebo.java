@@ -15,7 +15,7 @@ public class Placebo extends Augment {
     @Override
     public void onAdd() {
         super.onAdd();
-        player.addGold(8);
+        player.dropGoldForSelf(8);
     }
 
     @Override

@@ -6,10 +6,6 @@ public class TimeBoard extends Board {
 
     public static final float DEFAULT_DURATION = 30;
 
-    public void reset() {
-        time = 0;
-    }
-
     @Override
     public boolean isFinished() {
         return time >= getDuration();

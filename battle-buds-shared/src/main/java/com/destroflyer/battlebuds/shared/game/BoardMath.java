@@ -5,10 +5,10 @@ import com.jme3.math.Vector2f;
 
 public class BoardMath {
 
-    // Whole board/bench alphamap width = 334, whole terrain alphamap width = 1024, terrain world width = 128
-    private static final float BOARD_WIDTH = ((334f / 1024) * 128);
-    // Whole board alphamap height = 113, whole terrain alphamap height = 1024, terrain world width = 128
-    private static final float BOARD_HEIGHT = ((113f / 1024) * 128);
+    // Whole board/bench alphamap width = 336, whole terrain alphamap width = 1024, terrain world width = 128
+    private static final float BOARD_WIDTH = ((336f / 1024) * 128);
+    // Whole board alphamap height = 112, whole terrain alphamap height = 1024, terrain world width = 128
+    private static final float BOARD_HEIGHT = ((112f / 1024) * 128);
     private static final float BOARD_X = (BOARD_WIDTH / -2);
     private static final float BOARD_Y = 0;
     private static final float BOARD_SLOT_WIDTH = (BOARD_WIDTH / Player.BOARD_SLOTS_X);

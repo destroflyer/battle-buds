@@ -20,6 +20,7 @@ public class CombatBoard extends Board {
     private void checkFinishDamage() {
         if ((finishTime == null) && isCombatOver()) {
             finishTime = time;
+            // TODO: Give gold to winner
             for (Player player : owners) {
                 if (player instanceof ActualPlayer) {
                     int remainingEnemyUnits = (int) objects.stream().filter(object -> (object instanceof Unit unit) && unit.isActive() && (unit.getPlayer() != player)).count();

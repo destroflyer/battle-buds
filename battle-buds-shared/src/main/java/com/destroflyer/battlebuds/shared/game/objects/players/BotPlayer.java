@@ -31,7 +31,7 @@ public class BotPlayer extends ActualPlayer {
     }
 
     private void autoSellUnits() {
-        if (benchUnits[0] != null) {
+        if ((game.getPhase() > 2) && (benchUnits[0] != null)) {
             trySellUnit(benchUnits[0].getId());
         }
     }

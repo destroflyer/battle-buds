@@ -32,9 +32,6 @@ public class Player extends Character implements GameEventListener {
     public static final int BOARD_SLOTS_X = 7;
     public static final int BOARD_SLOTS_Y = 4;
     @Getter
-    @Setter
-    protected PlanningBoard planningBoard;
-    @Getter
     protected Unit[] benchUnits = new Unit[BENCH_SLOTS];
     @Getter
     protected Unit[][] boardUnits = new Unit[BOARD_SLOTS_X][BOARD_SLOTS_Y];
@@ -119,8 +116,8 @@ public class Player extends Character implements GameEventListener {
         if (!canMoveUnit(unitId)) {
             return false;
         }
-        // Not allowed to add board units if not in planning phase
-        if ((game.getPhaseType() != PhaseType.PLANNING) && (newPositionSlot.getType() == PositionSlot.Type.BOARD)) {
+        // Not allowed to add units to board if not on planning board
+        if (!isOnOwnPlanningBoard() && (newPositionSlot.getType() == PositionSlot.Type.BOARD)) {
             return false;
         }
         Unit unit = (Unit) game.getObjectById(unitId);
@@ -150,8 +147,8 @@ public class Player extends Character implements GameEventListener {
         if (oldPositionSlot == null) {
             return false;
         }
-        // Not allowed to move board units if not in planning phase
-        if ((game.getPhaseType() != PhaseType.PLANNING) && (oldPositionSlot.getType() == PositionSlot.Type.BOARD)) {
+        // Not allowed to move board units if not on planning board
+        if (!isOnOwnPlanningBoard() && (oldPositionSlot.getType() == PositionSlot.Type.BOARD)) {
             return false;
         }
         return true;
@@ -231,7 +228,7 @@ public class Player extends Character implements GameEventListener {
         int side = ((ownBoard.getOwners().indexOf(this) == 0) ? 1 : -1);
         unit.setPosition(BoardMath.getSlotPosition(positionSlot).mult(side));
         unit.setDirection(new Vector2f(0, 1));
-        unit.setActive((game.getPhaseType() == PhaseType.PLANNING) || (positionSlot.getType() == PositionSlot.Type.BOARD));
+        unit.setActive(isOnOwnPlanningBoard() || (positionSlot.getType() == PositionSlot.Type.BOARD));
         ownBoard.tryAddObject(unit);
     }
 
@@ -271,6 +268,10 @@ public class Player extends Character implements GameEventListener {
                 }
             }
         }
+    }
+
+    public boolean isOnOwnPlanningBoard() {
+        return ((board instanceof PlanningBoard) && (board.getOwners().getFirst() == this));
     }
 
     @Override

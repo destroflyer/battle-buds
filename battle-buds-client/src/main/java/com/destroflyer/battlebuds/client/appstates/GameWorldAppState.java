@@ -117,9 +117,9 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     }
 
     private Integer determineHoveredObjectId(Unit hoveredPositionSlotUnit, Integer hoveredExactObjectId) {
-        Game game = getAppState(GameAppState.class).getGame();
         if (hoveredPositionSlotUnit != null) {
-            if ((game.getPhaseType() == PhaseType.PLANNING) || (hoveredPositionSlot.getType() == PositionSlot.Type.BENCH)) {
+            HumanPlayer ownPlayer = getAppState(GameAppState.class).getOwnPlayer();
+            if (ownPlayer.isOnOwnPlanningBoard() || (hoveredPositionSlot.getType() == PositionSlot.Type.BENCH)) {
                 return hoveredPositionSlotUnit.getId();
             }
         }
@@ -129,28 +129,25 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     private void updateDrag() {
         Game game = getAppState(GameAppState.class).getGame();
         if ((draggedVisualObjectPhaseAtStart != null) && (draggedVisualObjectPhaseAtStart != game.getPhase())) {
-            draggedVisualObjectId = null;
-            draggedVisualObjectPhaseAtStart = null;
+            setDraggedVisualObject(null);
         }
     }
 
     private void updateWorld() {
-        GameAppState gameAppState = getAppState(GameAppState.class);
-        Game game = gameAppState.getGame();
-        HumanPlayer ownPlayer = gameAppState.getOwnPlayer();
+        HumanPlayer ownPlayer = getAppState(GameAppState.class).getOwnPlayer();
         Board watchedBoard = ownPlayer.getWatchedBoard();
 
-        updateGameObjects(game, ownPlayer, watchedBoard);
-        updateGoldIndicators(game, watchedBoard);
+        updateGameObjects(ownPlayer, watchedBoard);
+        updateGoldIndicators(watchedBoard);
         updateFilters(ownPlayer, watchedBoard);
     }
 
-    private void updateGameObjects(Game game, HumanPlayer ownPlayer, Board watchedBoard) {
+    private void updateGameObjects(HumanPlayer ownPlayer, Board watchedBoard) {
         for (Map.Entry<Integer, GameObjectVisual> entry : gameObjectVisuals.entrySet().toArray(Map.Entry[]::new)) {
             Integer objectId = entry.getKey();
             GameObjectVisual visual = entry.getValue();
             GameObject gameObject = ((watchedBoard != null) ? watchedBoard.getObjectById(objectId) : null);
-            if ((gameObject == null) || !isGameObjectRelevant(game, gameObject)) {
+            if ((gameObject == null) || !isGameObjectRelevant(watchedBoard, gameObject)) {
                 rootNode.detachChild(visual.getModelObject());
                 guiNode.detachChild(visual.getGuiNode());
                 gameObjectVisuals.remove(objectId);
@@ -158,7 +155,7 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
         }
         if (watchedBoard != null) {
             for (GameObject gameObject : watchedBoard.getObjects()) {
-                if (isGameObjectRelevant(game, gameObject)) {
+                if (isGameObjectRelevant(watchedBoard, gameObject)) {
                     VisualObject visualObject = (VisualObject) gameObject;
                     ActualPlayer actualPlayer = ((visualObject instanceof ActualPlayer ap) ? ap : null);
                     Unit unit = ((visualObject instanceof Unit u) ? u : null);
@@ -226,18 +223,18 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
         }
     }
 
-    private boolean isGameObjectRelevant(Game game, GameObject gameObject) {
-        if (game.isWalkOnlyPhase() ? !(gameObject instanceof ActualPlayer) : !(gameObject instanceof VisualObject)) {
+    private boolean isGameObjectRelevant(Board watchedBoard, GameObject gameObject) {
+        if (watchedBoard.isWalkOnly() ? !(gameObject instanceof ActualPlayer) : !(gameObject instanceof VisualObject)) {
             return false;
         }
         VisualObject visualObject = (VisualObject) gameObject;
         return (visualObject.getVisualName() != null);
     }
 
-    private void updateGoldIndicators(Game game, Board watchedBoard) {
+    private void updateGoldIndicators(Board watchedBoard) {
         for (int playerIndex = 0; playerIndex < goldIndicators.length; playerIndex++) {
             Integer gold = null;
-            if ((!game.isWalkOnlyPhase()) && (watchedBoard != null) && (playerIndex < watchedBoard.getOwners().size())) {
+            if ((watchedBoard != null) && !watchedBoard.isWalkOnly() && (playerIndex < watchedBoard.getOwners().size())) {
                 Player owner = watchedBoard.getOwners().get(playerIndex);
                 if (owner instanceof ActualPlayer ownerActualPlayer) {
                     gold = ownerActualPlayer.getGold();
@@ -295,15 +292,13 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
             case "mouse_left":
                 if (isPressed) {
                     if ((hoveredObjectId != null) && isDraggable(hoveredObjectId)) {
-                        draggedVisualObjectId = hoveredObjectId;
-                        draggedVisualObjectPhaseAtStart = gameAppState.getGame().getPhase();
+                        setDraggedVisualObject(hoveredObjectId);
                     }
                 } else if (draggedVisualObjectId != null) {
                     if (hoveredPositionSlot != null) {
                         clientNetworkAppState.send(new MoveUnitMessage(draggedVisualObjectId, hoveredPositionSlot));
                     }
-                    draggedVisualObjectId = null;
-                    draggedVisualObjectPhaseAtStart = null;
+                    setDraggedVisualObject(null);
                 }
                 break;
             case "key_buy_experience":
@@ -327,6 +322,16 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     private boolean isDraggable(int objectId) {
         HumanPlayer ownPlayer = getAppState(GameAppState.class).getOwnPlayer();
         return (ownPlayer.canMoveUnit(objectId) || ownPlayer.canSellUnit(objectId));
+    }
+
+    private void setDraggedVisualObject(Integer visualObjectId) {
+        GameAppState gameAppState = getAppState(GameAppState.class);
+        Game game = gameAppState.getGame();
+        HumanPlayer ownPlayer = gameAppState.getOwnPlayer();
+        draggedVisualObjectId = visualObjectId;
+        draggedVisualObjectPhaseAtStart = ((visualObjectId != null) ? game.getPhase() : null);
+        boolean canDragToBoard = ((visualObjectId != null) && ownPlayer.isOnOwnPlanningBoard());
+        getAppState(ForestBoardAppState.class).setBoardGridVisible(canDragToBoard);
     }
 
     @Override

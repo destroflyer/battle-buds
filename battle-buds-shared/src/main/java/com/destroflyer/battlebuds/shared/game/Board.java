@@ -20,6 +20,8 @@ import java.util.stream.Stream;
 
 public abstract class Board implements GameSerializable {
 
+    @Getter
+    protected boolean isWalkOnly;
     @Setter
     protected Game game;
     @Getter

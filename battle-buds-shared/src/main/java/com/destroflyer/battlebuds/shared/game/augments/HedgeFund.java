@@ -14,7 +14,7 @@ public class HedgeFund extends Augment {
     @Override
     public void onAdd() {
         super.onAdd();
-        player.addGold(25);
+        player.dropGoldForSelf(25);
     }
 
     @Override
