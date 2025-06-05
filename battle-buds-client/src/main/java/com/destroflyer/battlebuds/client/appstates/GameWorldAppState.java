@@ -154,6 +154,7 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
             }
         }
         if (watchedBoard != null) {
+            int watchedBoardSide = getWatchedBoardSide();
             for (GameObject gameObject : watchedBoard.getObjects()) {
                 if (isGameObjectRelevant(watchedBoard, gameObject)) {
                     VisualObject visualObject = (VisualObject) gameObject;
@@ -171,8 +172,8 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
                         return newVisual;
                     });
                     boolean isDragged = ((draggedVisualObjectId != null) && (draggedVisualObjectId == visualObject.getId()));
-                    visual.setPosition(isDragged ? hoveredPosition : visualObject.getPosition());
-                    visual.setDirection(visualObject.getDirection());
+                    visual.setPosition(isDragged ? hoveredPosition : visualObject.getPosition().mult(watchedBoardSide));
+                    visual.setDirection(visualObject.getDirection().mult(watchedBoardSide));
                     visual.getModelObject().setLocalScale(1 + ((unit != null) ? ((unit.getStars() - 1) * 0.23f) : 0));
                     switch (visualObject.getActionState()) {
                         case IDLE:
@@ -277,7 +278,6 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
     @Override
     public void onAction(String actionName, boolean isPressed, float tpf) {
         ClientNetworkAppState clientNetworkAppState = getAppState(ClientNetworkAppState.class);
-        GameAppState gameAppState = getAppState(GameAppState.class);
         GameGuiAppState gameGuiAppState = getAppState(GameGuiAppState.class);
         switch (actionName) {
             case "mouse_right":
@@ -285,7 +285,8 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
                     if (hoveredObjectId != null) {
                         gameGuiAppState.setInspectedUnitId(hoveredObjectId);
                     } else {
-                        clientNetworkAppState.send(new WalkMessage(hoveredPosition));
+                        Vector2f targetPosition = hoveredPosition.mult(getWatchedBoardSide());
+                        clientNetworkAppState.send(new WalkMessage(targetPosition));
                     }
                 }
                 break;
@@ -332,6 +333,18 @@ public class GameWorldAppState extends BaseClientAppState implements ActionListe
         draggedVisualObjectPhaseAtStart = ((visualObjectId != null) ? game.getPhase() : null);
         boolean canDragToBoard = ((visualObjectId != null) && ownPlayer.isOnOwnPlanningBoard());
         getAppState(ForestBoardAppState.class).setBoardGridVisible(canDragToBoard);
+    }
+
+    private int getWatchedBoardSide() {
+        GameAppState gameAppState = getAppState(GameAppState.class);
+        HumanPlayer ownPlayer = gameAppState.getOwnPlayer();
+        Board watchedBoard = ownPlayer.getWatchedBoard();
+        return ((watchedBoard != null) && !watchedBoard.isWalkOnly() && (
+            // Shown own player always on bottom side
+            (watchedBoard.getOwners().indexOf(ownPlayer) > 0)
+            // Show enemy-only boards always on top side
+            || (!watchedBoard.getOwners().contains(ownPlayer))
+        )) ? -1 : 1;
     }
 
     @Override
