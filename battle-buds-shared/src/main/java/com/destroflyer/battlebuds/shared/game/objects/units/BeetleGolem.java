@@ -20,5 +20,6 @@ public class BeetleGolem extends Unit {
         baseAttackDamage = 60;
         baseAttackSpeed = 0.6f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

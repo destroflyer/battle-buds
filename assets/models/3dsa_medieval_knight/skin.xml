@@ -1,7 +1,7 @@
-<skin name="legion_archer">
+<skin name="3dsa_medieval_knight">
     <model normScale="0.04" scale="0.5">
         <material>
-            <texture>diffuse_blue.png</texture>
+            <texture alpha="1">diffuse_blue.png</texture>
         </material>
     </model>
 </skin>

@@ -20,5 +20,6 @@ public class LittleDragon extends Unit {
         baseAttackDamage = 35;
         baseAttackSpeed = 0.7f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
     }
 }

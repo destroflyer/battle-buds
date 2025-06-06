@@ -19,5 +19,6 @@ public class Aland extends Unit {
         baseAttackDamage = 60;
         baseAttackSpeed = 0.8f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

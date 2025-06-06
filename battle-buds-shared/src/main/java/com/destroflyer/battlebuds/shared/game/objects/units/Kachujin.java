@@ -19,5 +19,6 @@ public class Kachujin extends Unit {
         baseAttackDamage = 45;
         baseAttackSpeed = 0.65f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

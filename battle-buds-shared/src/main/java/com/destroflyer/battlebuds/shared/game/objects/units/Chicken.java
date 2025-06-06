@@ -19,5 +19,6 @@ public class Chicken extends Unit {
         baseAttackDamage = 50;
         baseAttackSpeed = 0.7f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

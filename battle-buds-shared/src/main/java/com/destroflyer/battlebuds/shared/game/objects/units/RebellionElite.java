@@ -19,6 +19,8 @@ public class RebellionElite extends Unit {
         baseAttackDamage = 230;
         baseAttackSpeed = 0.8f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
+        attackProjectileVisualName = "rebellion_archer_arrow";
     }
 
     @Override

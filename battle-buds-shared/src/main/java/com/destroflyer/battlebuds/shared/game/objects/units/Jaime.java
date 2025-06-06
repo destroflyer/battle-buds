@@ -19,5 +19,6 @@ public class Jaime extends Unit {
         baseAttackDamage = 65;
         baseAttackSpeed = 0.75f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

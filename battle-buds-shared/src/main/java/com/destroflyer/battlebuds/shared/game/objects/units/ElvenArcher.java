@@ -19,5 +19,7 @@ public class ElvenArcher extends Unit {
         baseAttackDamage = 50;
         baseAttackSpeed = 0.75f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
+        attackProjectileVisualName = "elven_archer_arrow";
     }
 }

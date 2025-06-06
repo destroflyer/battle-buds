@@ -8,7 +8,7 @@ public class LegionArcher extends Unit {
 
     public LegionArcher() {
         name = "Legion Archer";
-        visualName = "legion_archer";
+        visualName = "3dsa_archer";
         cost = 1;
         baseTraits = new Class[] { LegionTrait.class, RangerTrait.class };
         baseMaximumHealth = 500f;
@@ -19,5 +19,7 @@ public class LegionArcher extends Unit {
         baseAttackDamage = 50;
         baseAttackSpeed = 0.7f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
+        attackProjectileVisualName = "3dsa_archer_arrow";
     }
 }

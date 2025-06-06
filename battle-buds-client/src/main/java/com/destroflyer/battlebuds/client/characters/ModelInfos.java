@@ -130,9 +130,9 @@ public class ModelInfos {
                         new AnimationInfo("shoot_arrow", 0.2f),
                         new AnimationInfo("samba_dancing")
                     );
-                case "fire_dragon":
+                case "3dsa_fire_dragon":
                     return new ModelInfo(
-                        "fire_dragon",
+                        "3dsa_fire_dragon",
                         null,
                         new AnimationInfo("idle", 4f),
                         new AnimationInfo("walk"),
@@ -240,9 +240,9 @@ public class ModelInfos {
                         new AnimationInfo("side_kick"),
                         null
                     );
-                case "legion_soldier":
+                case "3dsa_medieval_knight":
                     return new ModelInfo(
-                        "legion_soldier",
+                        "3dsa_medieval_knight",
                         null,
                         new AnimationInfo("idle", 2f),
                         new AnimationInfo("walk"),
@@ -251,9 +251,9 @@ public class ModelInfos {
                         null,
                         null
                     );
-                case "legion_archer":
+                case "3dsa_archer":
                     return new ModelInfo(
-                        "legion_archer",
+                        "3dsa_archer",
                         null,
                         new AnimationInfo("idle", 2f),
                         new AnimationInfo("walk"),
@@ -345,18 +345,20 @@ public class ModelInfos {
                     );
                 case "rebellion_archer":
                     return new ModelInfo(
-                            "legion_archer",
-                            "rebellion_archer",
-                            new AnimationInfo("idle", 2f),
-                            new AnimationInfo("walk"),
-                            null,
-                            new AnimationInfo("shoot_arrow"),
-                            null,
-                            null
+                        "3dsa_archer",
+                        "rebellion_archer",
+                        new AnimationInfo("idle", 2f),
+                        new AnimationInfo("walk"),
+                        null,
+                        new AnimationInfo("shoot_arrow"),
+                        null,
+                        null
                     );
+                case "rebellion_archer_arrow":
+                    return new ModelInfo("3dsa_archer_arrow", "rebellion");
                 case "rebellion_assassin":
                     return new ModelInfo(
-                        "legion_soldier",
+                        "3dsa_medieval_knight",
                         "rebellion_assassin",
                         new AnimationInfo("idle", 2f),
                         new AnimationInfo("walk"),
@@ -378,7 +380,7 @@ public class ModelInfos {
                     );
                 case "rebellion_elite":
                     return new ModelInfo(
-                        "legion_archer",
+                        "3dsa_archer",
                         "rebellion_elite",
                         new AnimationInfo("idle", 2f),
                         new AnimationInfo("walk"),
@@ -389,7 +391,7 @@ public class ModelInfos {
                     );
                 case "rebellion_giant":
                     return new ModelInfo(
-                        "legion_soldier",
+                        "3dsa_medieval_knight",
                         "rebellion_giant",
                         new AnimationInfo("idle", 2f),
                         new AnimationInfo("walk"),
@@ -400,7 +402,7 @@ public class ModelInfos {
                     );
                 case "rebellion_soldier":
                     return new ModelInfo(
-                        "legion_soldier",
+                        "3dsa_medieval_knight",
                         "rebellion_soldier",
                         new AnimationInfo("idle", 2f),
                         new AnimationInfo("walk"),

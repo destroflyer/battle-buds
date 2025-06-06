@@ -19,5 +19,6 @@ public class Garmon extends Unit {
         baseAttackDamage = 40;
         baseAttackSpeed = 0.7f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
     }
 }

@@ -19,5 +19,7 @@ public class Erika extends Unit {
         baseAttackDamage = 55;
         baseAttackSpeed = 0.75f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
+        attackProjectileVisualName = "erika_arrow";
     }
 }

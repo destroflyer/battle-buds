@@ -19,5 +19,6 @@ public class Alice extends Unit {
         baseAttackDamage = 40;
         baseAttackSpeed = 0.75f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
     }
 }

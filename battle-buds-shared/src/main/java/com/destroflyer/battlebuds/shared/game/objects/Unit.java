@@ -3,9 +3,11 @@ package com.destroflyer.battlebuds.shared.game.objects;
 import com.destroflyer.battlebuds.shared.game.*;
 import com.destroflyer.battlebuds.shared.game.boards.PlanningBoard;
 import com.destroflyer.battlebuds.shared.game.objects.players.ActualPlayer;
+import com.destroflyer.battlebuds.shared.game.objects.projectiles.AttackProjectile;
 import com.destroflyer.battlebuds.shared.network.BitInputStream;
 import com.destroflyer.battlebuds.shared.network.BitOutputStream;
 import com.destroflyer.battlebuds.shared.network.OptimizedBits;
+import com.jme3.math.Vector2f;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -50,6 +52,8 @@ public class Unit extends Character {
     protected float baseOmnivamp;
     protected float baseDamageDealtAmplification = 1;
     protected float baseDamageTakenAmplification = 1;
+    protected boolean hasProjectileAttacks;
+    protected String attackProjectileVisualName = "energy_projectile";
     @Getter
     @Setter
     private Player player;
@@ -110,13 +114,19 @@ public class Unit extends Character {
         if ((timeUntilNextAttack <= 0) && (attackTarget != null) && canAttack()) {
             float attackDuration = (1 / getAttackSpeed());
             timeUntilNextAttack = attackDuration;
-            Unit assignedAttackTarget = attackTarget;
-            game.enqueue(() -> {
-                // Both attacker and target could've been removed in the meantime
-                if ((board != null) && (assignedAttackTarget.getBoard() != null) && (Math.random() >= assignedAttackTarget.getDodgeChance())) {
-                    attack(assignedAttackTarget);
-                }
-            }, (attackDuration / 2));
+            if (hasProjectileAttacks) {
+                AttackProjectile attackProjectile = new AttackProjectile();
+                attackProjectile.setVisualName(attackProjectileVisualName);
+                shootProjectileAtTarget(attackProjectile, attackTarget, 25);
+            } else {
+                Unit assignedAttackTarget = attackTarget;
+                game.enqueue(() -> {
+                    // Both attacker and target could've been removed in the meantime
+                    if ((board != null) && (assignedAttackTarget.getBoard() != null)) {
+                        executeAttack(assignedAttackTarget);
+                    }
+                }, (attackDuration / 2));
+            }
         }
     }
 
@@ -124,12 +134,30 @@ public class Unit extends Character {
         return isInAttackTargetRange() && !isCasting();
     }
 
-    private void attack(Unit target) {
-        dealDamage(target, DamageType.PHYSICAL, getAttackDamage(), true);
-        addMana(10);
-        for (Trait trait : player.getAllTraits()) {
-            trait.onAllyUnitAttack(this, target);
+    public void executeAttack(Unit target) {
+        if (Math.random() >= target.getDodgeChance()) {
+            dealDamage(target, DamageType.PHYSICAL, getAttackDamage(), true);
+            addMana(10);
+            for (Trait trait : player.getAllTraits()) {
+                trait.onAllyUnitAttack(this, target);
+            }
         }
+    }
+
+    public void shootProjectileAtTarget(Projectile projectile, VisualObject target, float movementSpeed) {
+        projectile.setTargetObject(target, 0, movementSpeed);
+        shootProjectile(projectile);
+    }
+
+    public void shootProjectileInDirection(Projectile projectile, Vector2f direction, float movementSpeed) {
+        projectile.setForcedMovementDirection(direction, movementSpeed);
+        shootProjectile(projectile);
+    }
+
+    private void shootProjectile(Projectile projectile) {
+        projectile.setSource(this);
+        projectile.setPosition(position);
+        board.addObject(projectile);
     }
 
     private boolean isCasting() {

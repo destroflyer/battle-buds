@@ -19,5 +19,6 @@ public class DwarfWarrior extends Unit {
         baseAttackDamage = 75f;
         baseAttackSpeed = 0.85f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

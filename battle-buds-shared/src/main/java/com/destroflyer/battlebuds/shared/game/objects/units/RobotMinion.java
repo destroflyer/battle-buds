@@ -19,5 +19,6 @@ public class RobotMinion extends Unit {
         baseAttackDamage = 65;
         baseAttackSpeed = 0.5f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

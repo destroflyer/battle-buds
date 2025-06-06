@@ -19,5 +19,6 @@ public class SwimmingMinion extends Unit {
         baseAttackDamage = 55;
         baseAttackSpeed = 0.6f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

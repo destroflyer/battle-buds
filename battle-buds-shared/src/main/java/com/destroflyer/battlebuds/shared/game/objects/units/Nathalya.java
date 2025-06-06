@@ -19,5 +19,6 @@ public class Nathalya extends Unit {
         baseAttackDamage = 35;
         baseAttackSpeed = 0.75f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
     }
 }

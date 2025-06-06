@@ -19,5 +19,6 @@ public class Daydream extends Unit {
         baseAttackDamage = 60;
         baseAttackSpeed = 0.55f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

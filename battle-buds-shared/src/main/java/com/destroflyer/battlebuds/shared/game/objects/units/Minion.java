@@ -19,5 +19,6 @@ public class Minion extends Unit {
         baseAttackDamage = 50;
         baseAttackSpeed = 0.6f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

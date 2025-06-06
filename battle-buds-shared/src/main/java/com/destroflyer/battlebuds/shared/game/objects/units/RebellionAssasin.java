@@ -20,6 +20,7 @@ public class RebellionAssasin extends Unit {
         baseAttackDamage = 154;
         baseAttackSpeed = 1;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 
     @Override

@@ -19,5 +19,6 @@ public class Scarlet extends Unit {
         baseAttackDamage = 70;
         baseAttackSpeed = 0.9f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

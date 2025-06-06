@@ -19,5 +19,6 @@ public class Oz extends Unit {
         baseAttackDamage = 65;
         baseAttackSpeed = 0.6f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

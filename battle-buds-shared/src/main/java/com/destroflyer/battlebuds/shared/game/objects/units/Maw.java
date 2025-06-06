@@ -19,5 +19,6 @@ public class Maw extends Unit {
         baseAttackDamage = 70;
         baseAttackSpeed = 0.8f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

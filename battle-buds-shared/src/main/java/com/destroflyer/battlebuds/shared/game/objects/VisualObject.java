@@ -29,8 +29,11 @@ public class VisualObject extends GameObject {
     @Getter
     protected Vector2f direction = new Vector2f(0, 1);
     @Getter
-    private Vector2f targetPosition;
-    private float targetPositionRange;
+    protected VisualObject targetObject;
+    @Getter
+    protected Vector2f targetPosition;
+    private Float targetRange;
+    private Vector2f forcedMovementDirection;
     private Float forcedMovementSpeed;
     protected float baseMovementSpeed = 6;
     @Getter
@@ -39,45 +42,67 @@ public class VisualObject extends GameObject {
     @Override
     public void update(float tpf) {
         super.update(tpf);
-        moveToTargetPosition(tpf);
+        move(tpf);
         actionState = calculateActionState();
     }
 
-    private void moveToTargetPosition(float tpf) {
-        if (targetPosition != null)  {
+    private void move(float tpf) {
+        if (targetObject != null) {
+            if ((board != null) && (targetObject.getBoard() == board)) {
+                targetPosition = targetObject.getPosition();
+            } else {
+                onTargetLost();
+                clearTarget();
+            }
+        }
+        if ((targetPosition != null) || (forcedMovementDirection != null))  {
             float movementSpeed = ((forcedMovementSpeed != null) ? forcedMovementSpeed : getMovementSpeed());
             if (movementSpeed > 0) {
-                boolean targetReached;
-                Vector2f distanceToTarget = targetPosition.subtract(position);
-                float oldDistanceToTargetLengthSquared = distanceToTarget.lengthSquared();
-                float targetPositionRangeSquared = targetPositionRange * targetPositionRange;
-                if (oldDistanceToTargetLengthSquared <= targetPositionRangeSquared) {
-                    targetReached = true;
+                if (targetPosition != null) {
+                    boolean targetReached;
+                    Vector2f distanceToTarget = targetPosition.subtract(position);
+                    float oldDistanceToTargetLengthSquared = distanceToTarget.lengthSquared();
+                    float targetPositionRangeSquared = targetRange * targetRange;
+                    if (oldDistanceToTargetLengthSquared <= targetPositionRangeSquared) {
+                        targetReached = true;
+                    } else {
+                        if (oldDistanceToTargetLengthSquared > MINIMUM_DISTANCE_TO_TARGET_TO_TURN) {
+                            lookAtTargetPosition();
+                        }
+                        Vector2f movedDistance = distanceToTarget.normalize().multLocal(tpf * movementSpeed);
+                        position.addLocal(movedDistance);
+                        float newDistanceToTargetLengthSquared = targetPosition.distanceSquared(position);
+                        targetReached = ((newDistanceToTargetLengthSquared <= targetPositionRangeSquared) || (newDistanceToTargetLengthSquared >= oldDistanceToTargetLengthSquared));
+                    }
+                    if (targetReached) {
+                        if (targetRange == 0) {
+                            position.set(targetPosition);
+                        }
+                        onTargetReached();
+                        clearTarget();
+                    }
                 } else {
-                    if (oldDistanceToTargetLengthSquared > MINIMUM_DISTANCE_TO_TARGET_TO_TURN) {
-                        lookAtTargetPosition();
-                    }
-                    Vector2f movedDistance = distanceToTarget.normalize().multLocal(tpf * movementSpeed);
+                    direction.set(forcedMovementDirection);
+                    Vector2f movedDistance = forcedMovementDirection.multLocal(tpf * movementSpeed);
                     position.addLocal(movedDistance);
-                    float newDistanceToTargetLengthSquared = targetPosition.distanceSquared(position);
-                    targetReached = ((newDistanceToTargetLengthSquared <= targetPositionRangeSquared) || (newDistanceToTargetLengthSquared >= oldDistanceToTargetLengthSquared));
-                }
-                if (targetReached) {
-                    if (targetPositionRange == 0) {
-                        position.set(targetPosition);
-                    }
-                    targetPosition = null;
-                    forcedMovementSpeed = null;
                 }
             }
         }
+    }
+
+    protected void onTargetLost() {
+
+    }
+
+    protected void onTargetReached() {
+
     }
 
     public void setPosition(Vector2f position) {
         this.position.set(position);
     }
 
-    public void lookAtTargetPosition() {
+    protected void lookAtTargetPosition() {
         this.direction.set(targetPosition.subtract(position).normalizeLocal());
     }
 
@@ -85,14 +110,40 @@ public class VisualObject extends GameObject {
         this.direction.set(direction);
     }
 
-    public void setTargetPosition(Vector2f targetPosition, float targetPositionRange) {
-        setTargetPosition(targetPosition, targetPositionRange, null);
+    public void setTargetObject(VisualObject targetObject, float targetPositionRange) {
+        setTargetObject(targetObject, targetPositionRange, null);
     }
 
-    public void setTargetPosition(Vector2f targetPosition, float targetPositionRange, Float forcedMovementSpeed) {
+    public void setTargetObject(VisualObject targetObject, float targetRange, Float forcedMovementSpeed) {
+        setMovement(targetObject, null, targetRange, null, forcedMovementSpeed);
+    }
+
+    public void setTargetPosition(Vector2f targetPosition, float targetRange) {
+        setTargetPosition(targetPosition, targetRange, null);
+    }
+
+    public void setTargetPosition(Vector2f targetPosition, float targetRange, Float forcedMovementSpeed) {
+        setMovement(null, targetPosition, targetRange, null, forcedMovementSpeed);
+    }
+
+    public void setForcedMovementDirection(Vector2f forcedMovementDirection, float forcedMovementSpeed) {
+        setMovement(null, null, null, forcedMovementDirection, forcedMovementSpeed);
+    }
+
+    private void setMovement(VisualObject targetObject, Vector2f targetPosition, Float targetRange, Vector2f forcedMovementDirection, Float forcedMovementSpeed) {
+        this.targetObject = targetObject;
         this.targetPosition = targetPosition;
-        this.targetPositionRange = targetPositionRange;
+        this.targetRange = targetRange;
+        this.forcedMovementDirection = forcedMovementDirection;
         this.forcedMovementSpeed = forcedMovementSpeed;
+    }
+
+    private void clearTarget() {
+        this.targetObject = null;
+        this.targetPosition = null;
+        this.targetRange = null;
+        this.forcedMovementDirection = null;
+        this.forcedMovementSpeed = null;
     }
 
     public boolean isForcedMoving() {

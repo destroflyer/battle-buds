@@ -19,5 +19,7 @@ public class Varus extends Unit {
         baseAttackDamage = 50;
         baseAttackSpeed = 0.7f;
         baseAttackRange = ATTACK_RANGE_RANGED;
+        hasProjectileAttacks = true;
+        attackProjectileVisualName = "erika_arrow";
     }
 }

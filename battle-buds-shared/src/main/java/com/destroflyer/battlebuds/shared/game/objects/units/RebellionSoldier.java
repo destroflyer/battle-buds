@@ -19,6 +19,7 @@ public class RebellionSoldier extends Unit {
         baseAttackDamage = 20;
         baseAttackSpeed = 0.8f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 
     @Override

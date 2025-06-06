@@ -19,5 +19,6 @@ public class Sinbad extends Unit {
         baseAttackDamage = 70;
         baseAttackSpeed = 0.85f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

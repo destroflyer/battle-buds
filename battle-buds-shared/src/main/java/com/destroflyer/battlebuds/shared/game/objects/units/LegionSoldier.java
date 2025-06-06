@@ -8,7 +8,7 @@ public class LegionSoldier extends Unit {
 
     public LegionSoldier() {
         name = "Legion Soldier";
-        visualName = "legion_soldier";
+        visualName = "3dsa_medieval_knight";
         cost = 1;
         baseTraits = new Class[] { LegionTrait.class, BrawlerTrait.class };
         baseMaximumHealth = 650f;
@@ -19,5 +19,6 @@ public class LegionSoldier extends Unit {
         baseAttackDamage = 50;
         baseAttackSpeed = 0.6f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

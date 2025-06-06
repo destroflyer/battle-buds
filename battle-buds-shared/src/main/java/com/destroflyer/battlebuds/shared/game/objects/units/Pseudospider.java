@@ -19,5 +19,6 @@ public class Pseudospider extends Unit {
         baseAttackDamage = 50;
         baseAttackSpeed = 0.8f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

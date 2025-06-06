@@ -19,6 +19,7 @@ public class RebellionGiant extends Unit {
         baseAttackDamage = 110;
         baseAttackSpeed = 0.8f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 
     @Override

@@ -19,5 +19,6 @@ public class Soldier extends Unit {
         baseAttackDamage = 65;
         baseAttackSpeed = 0.7f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 }

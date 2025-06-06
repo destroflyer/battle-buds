@@ -18,6 +18,7 @@ public class RebellionBaron extends Unit {
         baseAttackDamage = 900;
         baseAttackSpeed = 0.8f;
         baseAttackRange = ATTACK_RANGE_MELEE;
+        hasProjectileAttacks = false;
     }
 
     @Override
